@@ -1,0 +1,20 @@
+:root {
+    /* 特大字体，系统名称 */
+    --font-size-bg: 24px;
+    /*大字体，主要用于导航栏名称*/
+    --font-size-xl: 20px;
+    /*大号字体*/
+    --font-size-lg: 18px;
+    /*强调性文件，大一号字体，一般用于各类列表标题名称*/
+    --font-size-md: 16px;
+    /*正常字体，用于各类正文文字*/
+    --font-size-sm: 14px;
+    /*小字体，一般用于各类提示性文字*/
+    --font-size-xs: 12px;
+    /* 系统主要颜色 */
+    --mainColor: #406dfc;
+    /* label组合组件中label的宽度 */
+    --labelWidth: 100px;
+    /* 普通li高度 */
+    --liHeight: 40px;
+}
