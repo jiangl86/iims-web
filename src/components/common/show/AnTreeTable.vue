@@ -12,6 +12,13 @@
       <li class="thead">
         <div>
           <div
+            v-if="showCheckbox"
+            style="width: 2%"
+            @click.prevent="thCheckboxClick"
+          >
+            <an-checkbox ref="thCheckbox"></an-checkbox>
+          </div>
+          <div
             v-for="(label, index) in labelNames"
             :key="label"
             :style="{ width: colWidths[index] }"
@@ -31,6 +38,7 @@
         :widths="colWidths"
         :autoExpand="autoExpand"
         :level="1"
+        :showCheckbox="showCheckbox"
       ></an-tree-table-node>
       <!--引用组建： 表格的tbody部分 end  -->
     </ul>
@@ -39,6 +47,7 @@
 
 <script>
 import AnTreeTableNode from "./child/AnTreeTableNode"; //引入组件
+import AnCheckbox from "components/common/basic/AnCheckbox";
 export default {
   name: "AnTreeTable",
   props: {
@@ -64,7 +73,7 @@ export default {
       type: Array, //当屏幕低于1365时，每一列对应的宽度，若为0，则隐藏，
     },
     showCheckbox: {
-      type: Boolean, //暂未使用，后期根据需求实现
+      type: Boolean, //显示复选框
       default: false,
     },
     autoExpand: {
@@ -82,6 +91,7 @@ export default {
   },
   components: {
     AnTreeTableNode,
+    AnCheckbox,
   },
   created() {
     this.initData(); //调用初始化每列的宽度
@@ -118,6 +128,8 @@ export default {
         this.$refs.thead.style.backgroundColor = this.labelBgColor;
       }
     },
+    //点击表头复选框
+    thCheckboxClick() {},
   },
 };
 </script>
@@ -138,5 +150,10 @@ li > div {
 }
 li > div > div {
   border-right: 1px solid #fff;
+}
+.funcs-page {
+  display: flex;
+  justify-content: flex-start;
+  margin: 10px 0;
 }
 </style>

@@ -17,6 +17,7 @@
           :pData="item"
           :key="item.id"
           :autoExpandSelect="autoExpandSelect"
+          :eventKey="eventKey"
         ></an-tree-node>
       </ul>
       <div class="funs">
@@ -326,6 +327,7 @@ export default {
       selected: [],
       showSelectedTree: false,
       searchNode: null,
+      eventKey: Date.parse(new Date()) + Math.random(), //每一个树改数据唯一，非常重要的参数
     };
   },
   components: {
@@ -351,12 +353,14 @@ export default {
     this.searchNode = debounce(this.search);
   },
   mounted() {
-    this.$bus.$on("nodeClick", (node) => {
-      this.nodeClick(node);
+    console.log(this.eventKey);
+    this.$bus.$on("nodeClick", (node, eventKey) => {
+      this.nodeClick(node, eventKey);
     });
   },
   methods: {
     //对树列表进行数据初始化，判断各节点及其子节点的选中状态
+    //传进来的数据后续需要进行复制处理，直接复制数据，不能复制地址，否则当一个页面有多个调用多个控件，引用相同的数据源时，会相互影响
     initData(itemList) {
       for (let i = 0; i < itemList.length; i++) {
         let item = itemList[i];
@@ -618,22 +622,25 @@ export default {
       }
     },
     //点击节点事件
-    nodeClick(item) {
-      let exist = false;
-      for (let i = 0; i < this.selected.length; i++) {
-        if (item.id == this.selected[i].id) {
-          exist = true;
-          this.deleteFromSelected(item, i);
-          break;
+    nodeClick(item, eventKey) {
+      //只接受当前树子节点发送的事件
+      if (this.eventKey == eventKey) {
+        let exist = false;
+        for (let i = 0; i < this.selected.length; i++) {
+          if (item.id == this.selected[i].id) {
+            exist = true;
+            this.deleteFromSelected(item, i);
+            break;
+          }
         }
-      }
-      //如果是单选且设置为选择及确认
-      if (!this.multiSelect && this.selectAssert) {
-        this.pushToSelected(item);
-        this.assert();
-      } else {
-        if (!exist && !this.showSelectedTree) {
+        //如果是单选且设置为选择及确认
+        if (!this.multiSelect && this.selectAssert) {
           this.pushToSelected(item);
+          this.assert();
+        } else {
+          if (!exist && !this.showSelectedTree) {
+            this.pushToSelected(item);
+          }
         }
       }
     },

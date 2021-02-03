@@ -31,6 +31,7 @@
       :showSearch="showSearch"
       :autoExpandSelect="autoExpandSelect"
       :backTip="backTip"
+      :prefixKey="prefixKey"
       @assert="assertSelect"
       @cancel="cancelSelect"
       ref="tree"
@@ -129,6 +130,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    //给选择框内子元素的key前缀，防止同一个页面多个树调用相同的数据源时导致的bug
+    prefixKey: {
+      type: String,
+    },
   },
   data() {
     return {
@@ -142,6 +147,13 @@ export default {
   components: {
     AnTree,
     AnInput,
+  },
+  watch: {
+    initialValue: function () {
+      this.$refs.textarea.setValue(this.initialValue);
+      this.value = this.initialValue;
+      this.initData();
+    },
   },
   mounted() {
     //若selected为空，则初始化为空数据
@@ -258,6 +270,7 @@ export default {
       }
       this.$refs.textarea.setValue(this.value);
       this.showSelect = false;
+      this.$emit("aa");
     },
 
     // 取消选择

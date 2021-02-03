@@ -185,6 +185,27 @@ export default {
     AnPagination,
     AnButton,
   },
+  watch: {
+    funcRight: function () {
+      this.funcButtons.splice(0, this.funcButtons.length);
+      console.log(this.funcButtons);
+      this.initFuncButtons();
+    },
+    //数据变化时需要更新各行的选中状态，否则表头的复选框无法判断是否该自动选中
+    pDatas: function () {
+      this.trCheckboxStates = Array(this.pDatas.length).fill(false);
+      for (let i = this.selectedItem.length - 1; i >= 0; i--) {
+        let index = this.pDatas.findIndex(
+          (ele) => ele.id == this.selectedItem[i].id
+        );
+        if ((index = -1)) {
+          this.selectedItem.splice(i, 1); //删除selectedItem中存在但在pDatas中不存在的数据
+        } else {
+          this.trCheckboxStates[index] = true; //初始化各行选中状态
+        }
+      }
+    },
+  },
   created() {
     this.initData();
     this.initFuncButtons();
@@ -424,6 +445,16 @@ export default {
         this.$refs.trCheckbox[i].checked = value;
         this.trCheckboxStates[i] = value;
       }
+      this.selectedItem = [];
+      if (value) {
+        //如果是选中
+        //将选中的内容放入selectedItem
+        for (let i = 0; i < this.trCheckboxStates.length; i++) {
+          if (this.trCheckboxStates[i]) {
+            this.selectedItem.push(this.pDatas[i]);
+          }
+        }
+      }
     },
 
     //点击各条前复选框
@@ -435,6 +466,17 @@ export default {
         this.$refs.thCheckbox.checked = true;
       } else {
         this.$refs.thCheckbox.checked = false;
+      }
+      //更新选中内容
+      if (value) {
+        this.selectedItem.push(this.pDatas[itemIndex]);
+      } else {
+        for (let i = 0; i < this.selectedItem.length; i++) {
+          if (this.selectedItem[i].id == this.pDatas[itemIndex].id) {
+            this.selectedItem.splice(i, 1);
+            break;
+          }
+        }
       }
     },
 
@@ -451,15 +493,6 @@ export default {
         this.$emit("funcClick", btn.code, this.selectedItem);
       } else {
         //需要判断是否有选中相关需要操作的数据或者是否选中了多条
-
-        //先初始化选中了多少条
-        this.selectedItem = [];
-        for (let i = 0; i < this.trCheckboxStates.length; i++) {
-          if (this.trCheckboxStates[i]) {
-            this.selectedItem.push(this.pDatas[i]);
-          }
-        }
-
         //如果未选中，直接提示需要选中相关数据
         if (this.selectedItem.length == 0) {
           AnMsgbox.msgbox({ type: "info", message: "请选择需要操作的数据" });

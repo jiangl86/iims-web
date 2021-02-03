@@ -1,5 +1,8 @@
 <template>
   <li class="an-tree-table-node">
+    <div v-if="showCheckbox" style="width: 2%" @click.prevent="thCheckboxClick">
+      <an-checkbox ref="thCheckbox"></an-checkbox>
+    </div>
     <div @dblclick="dblclick">
       <div :style="{ width: colWidths[0] }">
         <!-- 点击展开子节点 -->
@@ -77,6 +80,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    showCheckbox: {
+      type: Boolean, //暂未使用，后期根据需求实现
+      default: false,
+    },
     level: {
       //层级
       type: Number,
@@ -122,6 +129,9 @@ export default {
     dblclick() {
       this.$bus.$emit("dblclick", this.pData);
     },
+
+    //点击每行前的复选框
+    thCheckboxClick() {},
   },
 };
 </script>

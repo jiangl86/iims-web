@@ -8,10 +8,12 @@
       :total="totalNum"
       :intialPage="page"
       :funcRight="funcRight"
-      showFuncs
+      :showFuncs="showFuncs"
       showPagination
       @funcClick="funcClick"
       @dblClick="dblClick"
+      @pageChange="pageChange"
+      @sizeChange="sizeChange"
     ></an-table>
 
     <div class="detail" v-show="showDetail">
@@ -60,12 +62,13 @@ export default {
   data() {
     return {
       showDetail: false,
+      showFuncs: false, //是否显示功能操作按钮
       chooseUserId: 0, //选中用户Id，添加时为0
       typeInitValue: "1", //用户初始类型
       stateInitValue: "1", //用户初始状态
       users: [],
-      page: 1,
-      pageSize: 15,
+      page: 1, //当前页码
+      pageSize: 15, //每页数量
       totalNum: 0,
       labelNames: ["姓名", "电话", "账号", "类型", "状态", "添加时间"],
       keys: [
@@ -85,12 +88,7 @@ export default {
         { label: "正常", value: "1" },
         { label: "未激活", value: "2 " },
       ],
-      funcRight: {
-        addFlag: 1,
-        editFlag: 1,
-        delFlag: 1,
-        resetPassFlag: 1,
-      },
+      funcRight: null,
       url: "/api/user",
     };
   },
@@ -117,9 +115,18 @@ export default {
         .then((data) => {
           console.log(data);
           if (data.ret == 0) {
+            console.log(data);
             this.totalNum = data.total_count;
             this.users = data.retlist;
             this.initUsers();
+            if (data.funcRight) {
+              this.funcRight = data.funcRight;
+              this.showFuncs = true;
+            } else {
+              this.showFuncs = false;
+              this.funcRight = null;
+            }
+            console.log(this.funcRight);
           } else {
             //异常处理
             console.log(data);
@@ -139,6 +146,17 @@ export default {
       console.log(this.users);
     },
 
+    //切换页面
+    pageChange(page) {
+      this.page = page;
+      this.getUserData();
+    },
+
+    //变化每页数量
+    sizeChange(size) {
+      this.pageSize = size;
+      this.getUserData();
+    },
     //双击某一条数据，开启修改
     dblClick(user) {
       this.chooseUserId = user.id;
