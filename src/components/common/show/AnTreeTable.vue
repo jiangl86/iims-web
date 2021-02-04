@@ -11,12 +11,8 @@
       <!-- 表格的头部  start-->
       <li class="thead">
         <div>
-          <div
-            v-if="showCheckbox"
-            style="width: 2%"
-            @click.prevent="thCheckboxClick"
-          >
-            <an-checkbox ref="thCheckbox"></an-checkbox>
+          <div v-show="showCheckbox" style="width: 2%">
+            <span></span>
           </div>
           <div
             v-for="(label, index) in labelNames"
@@ -39,6 +35,7 @@
         :autoExpand="autoExpand"
         :level="1"
         :showCheckbox="showCheckbox"
+        :eventKey="eventKey"
       ></an-tree-table-node>
       <!--引用组建： 表格的tbody部分 end  -->
     </ul>
@@ -70,7 +67,7 @@ export default {
       type: Array, //每一列对应的宽度，不设置时，平均分布，按百分比设置，格式为[‘5%‘,’5%’,‘5%’],各列加起来等于100%，其中checkbox占用宽度（2%）,序号占3%
     },
     scaleWidth: {
-      type: Array, //当屏幕低于1365时，每一列对应的宽度，若为0，则隐藏，
+      type: Array, //当屏幕低于1365时，每一列对应的宽度，若为0，则隐藏，子节点暂未实现
     },
     showCheckbox: {
       type: Boolean, //显示复选框
@@ -87,6 +84,9 @@ export default {
   data() {
     return {
       colWidths: this.widths, //传每列的宽度
+      selected: [], //选中的元素，有复选框时使用
+
+      eventKey: Math.random() + "" + Math.random(), //每一个树改数据唯一，非常重要的参数
     };
   },
   components: {
@@ -99,12 +99,22 @@ export default {
   mounted() {
     this.initStyle();
     //通过$on监听事件
-    this.$bus.$on("loadMore", (item) => {
-      this.$emit("loadMore", item); //通过$emit触发事件
+    this.$bus.$on("loadMore", (item, eventKey) => {
+      if (this.eventKey == eventKey) {
+        this.$emit("loadMore", item); //通过$emit触发事件
+      }
     });
-    this.$bus.$on("dblclick", (item) => {
-      this.$emit("dblclick", item);
+    this.$bus.$on("dblclick", (item, eventKey) => {
+      if (this.eventKey == eventKey) {
+        this.$emit("dblclick", item);
+      }
     });
+    this.$bus.$on("trCheckboxClick", (item, eventKey) => {
+      this.trCheckboxClick(item, eventKey);
+    });
+  },
+  destroyed() {
+    this.$bus.$off();
   },
   methods: {
     initData() {
@@ -128,8 +138,24 @@ export default {
         this.$refs.thead.style.backgroundColor = this.labelBgColor;
       }
     },
-    //点击表头复选框
+    //点击表头复选框,暂未实现
     thCheckboxClick() {},
+
+    //子节点点击事件
+    trCheckboxClick(item, eventKey) {
+      //如果是当前树的子节点触发的事件才处理
+      if (this.eventKey == eventKey) {
+        if (item.selected) {
+          this.selected.push(item);
+        } else {
+          let index = this.selected.findIndex((ele) => ele.id == item.id);
+          if (index != -1) {
+            this.selected.splice(index, 1);
+          }
+        }
+        console.log(this.selected);
+      }
+    },
   },
 };
 </script>

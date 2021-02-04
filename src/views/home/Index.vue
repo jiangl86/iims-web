@@ -81,7 +81,7 @@ export default {
   methods: {
     funcClick(code) {
       if (code == "jkgl") {
-        this.$router.replace({ name: "Task" });
+        this.$router.replace({ name: "JkglIndex" });
       } else if (code == "xmgl") {
         this.$router.replace({ name: "XmglList" });
       } else if (code == "yhgl") {
@@ -148,6 +148,9 @@ export default {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  position: fixed;
+  top: 0;
+  z-index: 2;
 }
 .logo_title {
   color: #fff;
@@ -195,9 +198,10 @@ export default {
   padding-top: 5px;
 }
 .show-area {
-  height: 800px;
+  height: calc(100vh - 60px);
   width: 100%;
-  overflow-y: scroll;
+  // overflow-y: scroll;
+  margin-top: 60px;
 }
 .czsm {
   width: 66px;
@@ -252,6 +256,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 999;
 }
 .password-reset .info {
   width: 40%;

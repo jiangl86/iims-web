@@ -214,8 +214,13 @@ export default {
     },
     //双击项目，进入模块列表页面
     dblClick(item) {
-      let queryInfo = { xmInfo: item };
-      if (this.funcRight.editFlag == "1" || item.editFlag == "1") {
+      let queryInfo = { projectId: item.id };
+      if (
+        (this.funcRight &&
+          this.funcRight.editFlag &&
+          this.funcRight.editFlag == "1") ||
+        (item.editFlag && item.editFlag == "1")
+      ) {
         queryInfo.canEdit = true;
       }
       this.$router.push({ name: "XmglModuleList", query: queryInfo });

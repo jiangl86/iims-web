@@ -1,10 +1,14 @@
 <template>
   <li class="an-tree-table-node">
-    <div v-if="showCheckbox" style="width: 2%" @click.prevent="thCheckboxClick">
-      <an-checkbox ref="thCheckbox"></an-checkbox>
-    </div>
     <div @dblclick="dblclick">
-      <div :style="{ width: colWidths[0] }">
+      <div
+        v-show="showCheckbox"
+        style="width: 2%"
+        @click.prevent="trCheckboxClick"
+      >
+        <an-checkbox ref="trCheckbox"></an-checkbox>
+      </div>
+      <div :style="{ width: widths[0] }">
         <!-- 点击展开子节点 -->
         <div @click="expand" class="expand">
           <span
@@ -44,6 +48,10 @@
         :pData="item"
         :keys="keys"
         :level="level + 1"
+        :widths="widths"
+        :autoExpand="autoExpand"
+        :showCheckbox="showCheckbox"
+        :eventKey="eventKey"
       ></an-tree-table-node>
       <!-- 调用自己组件 -->
     </ul>
@@ -53,11 +61,12 @@
 <script>
 import AnTreeTableNode from "./AnTreeTableNode"; //自己调用自己就是递归
 import AnIcon from "components/common/basic/AnIcon";
+import AnCheckbox from "components/common/basic/AnCheckbox";
 export default {
   name: "AnTreeTableNode",
   data() {
     return {
-      colWidths: this.widths, //返回当前的宽度
+      colWidths: this.widths.slice(1), //返回当前的宽度
       firstKey: this.keys[0], //返回当前key值
       isOpen: this.autoExpand, //若当前节点有子节点，标识当前节点是否处于展开状态
     };
@@ -88,11 +97,16 @@ export default {
       //层级
       type: Number,
     },
+    eventKey: {
+      type: String, //因为通过事件通过总线发送，当一个页面有多个树时，为了准确由父级树确定事件由子节点产生
+      required: true,
+    },
   },
 
   components: {
     AnTreeTableNode,
     AnIcon,
+    AnCheckbox,
   },
   computed: {
     dataKeys: function () {
@@ -116,22 +130,30 @@ export default {
           this.colWidths.push(perCol + "%");
         }
       }
+
+      //给元素加上selected标识
+      this.$set(this.pData, "selected", false);
     },
     expand() {
       //判断是否显示子节点
       if (this.pData.children) {
         if (!this.pData.childrenList) {
-          this.$bus.$emit("loadMore", this.pData);
+          this.$bus.$emit("loadMore", this.pData, this.eventKey);
         }
         this.isOpen = !this.isOpen;
       }
     },
     dblclick() {
-      this.$bus.$emit("dblclick", this.pData);
+      this.$bus.$emit("dblclick", this.pData, this.eventKey);
     },
 
     //点击每行前的复选框
-    thCheckboxClick() {},
+    trCheckboxClick() {
+      let value = !this.$refs.trCheckbox.checked;
+      this.$refs.trCheckbox.checked = value;
+      this.pData.selected = !this.pData.selected;
+      this.$bus.$emit("trCheckboxClick", this.pData, this.eventKey);
+    },
   },
 };
 </script>
@@ -148,7 +170,7 @@ li > div {
 li > div:hover {
   background: #f4f4f4;
 }
-li > div > div:nth-child(1) {
+li > div > div:nth-child(2) {
   display: flex;
   text-align: left;
   border-left: 1px solid #ccc;

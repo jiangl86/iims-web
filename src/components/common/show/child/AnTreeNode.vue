@@ -57,7 +57,7 @@ export default {
       type: Object, //元素必须包含id,和name元素，其中有子节点的必须包含children子列表
     },
     eventKey: {
-      type: Number, //因为通过事件通过总线发送，当一个页面有多个树时，为了准确由父级树确定事件由子节点产生
+      type: String, //因为通过事件通过总线发送，当一个页面有多个树时，为了准确由父级树确定事件由子节点产生
       required: true,
     },
   },

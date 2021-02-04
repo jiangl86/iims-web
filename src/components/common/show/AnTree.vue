@@ -327,7 +327,7 @@ export default {
       selected: [],
       showSelectedTree: false,
       searchNode: null,
-      eventKey: Date.parse(new Date()) + Math.random(), //每一个树改数据唯一，非常重要的参数
+      eventKey: Math.random() + "" + Math.random(), //每一个树改数据唯一，非常重要的参数
     };
   },
   components: {
@@ -357,6 +357,9 @@ export default {
     this.$bus.$on("nodeClick", (node, eventKey) => {
       this.nodeClick(node, eventKey);
     });
+  },
+  destroyed() {
+    this.$bus.$off();
   },
   methods: {
     //对树列表进行数据初始化，判断各节点及其子节点的选中状态
