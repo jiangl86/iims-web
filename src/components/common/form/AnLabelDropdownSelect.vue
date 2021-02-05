@@ -1,9 +1,9 @@
 <template>
   <div class="an-label-dropdown-select">
     <label>{{ name }}:</label>
-    <el-select
-      v-model="value"
+    <an-select
       :placeholder="placeholder"
+      :initialValue="initialValue"
       :multiple="multiple"
       :filterable="filterable"
       :allow-create="allowCreate"
@@ -11,19 +11,14 @@
       :remote-method="remoteMethod"
       :loading="loading"
       :disabled="disabled"
+      :options="options"
       clearable
       @change="change"
       @visible-change="visibleChange"
       @clear="clear"
       @focus="focus"
     >
-      <el-option
-        v-for="item in options"
-        :key="item.id"
-        :label="item.name"
-        :value="item.id"
-      ></el-option>
-    </el-select>
+    </an-select>
   </div>
 </template>
 
@@ -77,7 +72,7 @@ export default {
   },
   data() {
     return {
-      value: this.initialValue ? this.initialValue : [], //选中的结果，为一个数组，每个选项包含label和value两个数值
+      value: null,
     };
   },
   components: { AnSelect },

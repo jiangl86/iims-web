@@ -48,231 +48,9 @@ export default {
       type: Boolean,
       default: true, //是否自动展开选中的节点，默认是
     },
-    //树的列表，每个元素必须包含id,和name元素，其中有子节点的必须包含children子列表
+    //树的列表，每个元素必须包含id,和name元素，其中有子节点的必须包含childrenList子列表
     pData: {
       type: Array,
-      default: function () {
-        return [
-          {
-            name: "一级节点1",
-            id: 1,
-            children: [
-              {
-                name: "二级节点11",
-                id: 11,
-                children: [
-                  {
-                    name: "三级节点111",
-                    id: 111,
-                  },
-                  {
-                    name: "三级节点112",
-                    id: 112,
-                  },
-                ],
-              },
-              {
-                name: "二级节点12",
-                id: 12,
-                children: [
-                  {
-                    name: "三级节点121",
-                    id: 121,
-                  },
-                ],
-              },
-            ],
-          },
-          {
-            name: "一级节点2",
-            id: 2,
-            children: [
-              {
-                name: "二级节点21",
-                id: 21,
-                children: [
-                  {
-                    name: "三级节点211",
-                    id: 211,
-                  },
-                  {
-                    name: "三级节点212",
-                    id: 212,
-                  },
-                ],
-              },
-              {
-                name: "二级节点22",
-                id: 22,
-              },
-            ],
-          },
-          {
-            name: "一级节点3",
-            id: 3,
-          },
-          {
-            name: "一级节点4",
-            id: 4,
-            children: [
-              {
-                name: "二级节点41",
-                id: 41,
-                children: [
-                  {
-                    name: "三级节点411",
-                    id: 411,
-                  },
-                  {
-                    name: "三级节点412",
-                    id: 412,
-                    children: [
-                      {
-                        name: "四级节点4121",
-                        id: 4121,
-                      },
-                      {
-                        name: "四级节点4122",
-                        id: 4122,
-                      },
-                      {
-                        name: "四级节点4123",
-                        id: 4123,
-                      },
-                      {
-                        name: "四级节点4124",
-                        id: 4124,
-                      },
-                    ],
-                  },
-                ],
-              },
-              {
-                name: "二级节点42",
-                id: 42,
-              },
-            ],
-          },
-          {
-            name: "一级节点5",
-            id: 5,
-            children: [
-              {
-                name: "二级节点51",
-                id: 51,
-                children: [
-                  {
-                    name: "三级节点511",
-                    id: 511,
-                  },
-                  {
-                    name: "三级节点512",
-                    id: 512,
-                    children: [
-                      {
-                        name: "四级节点5121",
-                        id: 5121,
-                      },
-                      {
-                        name: "四级节点5122",
-                        id: 5122,
-                      },
-                      {
-                        name: "四级节点5123",
-                        id: 5123,
-                      },
-                      {
-                        name: "四级节点5124",
-                        id: 5124,
-                      },
-                      {
-                        name: "四级节点5125",
-                        id: 5125,
-                      },
-                    ],
-                  },
-                  {
-                    name: "三级节点513",
-                    id: 513,
-                    children: [
-                      {
-                        name: "四级节点5131",
-                        id: 5131,
-                      },
-                      {
-                        name: "四级节点5132",
-                        id: 5132,
-                      },
-                    ],
-                  },
-                ],
-              },
-              {
-                name: "二级节点22",
-                id: 22,
-              },
-            ],
-          },
-          {
-            name: "一级节点6",
-            id: 6,
-          },
-          {
-            name: "一级节点7",
-            id: 7,
-          },
-          {
-            name: "一级节点8",
-            id: 8,
-          },
-          {
-            name: "一级节点9",
-            id: 9,
-            children: [
-              {
-                name: "二级节点91",
-                id: 91,
-                children: [
-                  {
-                    name: "三级节点911",
-                    id: 911,
-                  },
-                  {
-                    name: "三级节点912",
-                    id: 912,
-                    children: [
-                      {
-                        name: "四级节点9121",
-                        id: 9121,
-                      },
-                      {
-                        name: "四级节点9122",
-                        id: 9122,
-                      },
-                      {
-                        name: "四级节点9123",
-                        id: 9123,
-                      },
-                      {
-                        name: "四级节点9124",
-                        id: 9124,
-                      },
-                      {
-                        name: "四级节点9125",
-                        id: 9125,
-                      },
-                    ],
-                  },
-                ],
-              },
-              {
-                name: "二级节点22",
-                id: 22,
-              },
-            ],
-          },
-        ];
-      },
     },
   },
   data() {
@@ -298,6 +76,9 @@ export default {
     height() {
       this.initStyle();
     },
+    pData() {
+      this.initData(this.pData);
+    },
   },
   methods: {
     //对树列表进行数据初始化，判断各节点及其子节点的选中状态
@@ -305,8 +86,8 @@ export default {
       for (let i = 0; i < itemList.length; i++) {
         let item = itemList[i];
         this.$set(item, "show", true); //设置是否展示，主要用于后面进行搜索展示
-        if (item.children) {
-          this.initData(item.children);
+        if (item.childrenList) {
+          this.initData(item.childrenList);
         }
       }
     },
@@ -331,15 +112,15 @@ export default {
       }
       if (item.name.indexOf(name) != -1) {
         item.show = true;
-        if (item.children && !this.showSelectedTree) {
-          this.recoverShowState(item.children);
+        if (item.childrenList && !this.showSelectedTree) {
+          this.recoverShowState(item.childrenList);
         }
         return 1;
       } else {
         let childState = 0;
-        if (item.children) {
-          for (let i = 0; i < item.children.length; i++) {
-            let state = this.setNameShowState(item.children[i], name);
+        if (item.childrenList) {
+          for (let i = 0; i < item.childrenList.length; i++) {
+            let state = this.setNameShowState(item.childrenList[i], name);
             if (state != 0) {
               childState = state;
             }
@@ -358,9 +139,9 @@ export default {
     //根据已选择元素来展示列表
     setSelectedShowState(item) {
       let childState = 0;
-      if (item.children) {
-        for (let i = 0; i < item.children.length; i++) {
-          let state = this.setSelectedShowState(item.children[i]);
+      if (item.childrenList) {
+        for (let i = 0; i < item.childrenList.length; i++) {
+          let state = this.setSelectedShowState(item.childrenList[i]);
           if (state != 0) {
             childState = state;
           }
@@ -384,8 +165,8 @@ export default {
     recoverShowState(itemList) {
       for (let i = 0; i < itemList.length; i++) {
         itemList[i].show = true;
-        if (itemList[i].children) {
-          this.recoverShowState(itemList[i].children);
+        if (itemList[i].childrenList) {
+          this.recoverShowState(itemList[i].childrenList);
         }
       }
     },
@@ -474,7 +255,7 @@ export default {
   text-align: left;
   position: relative;
   text-indent: 10px;
-  font-size: 700;
+  font-weight: 600;
 }
 .change-func {
   position: absolute;

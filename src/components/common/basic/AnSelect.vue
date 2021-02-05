@@ -1,7 +1,6 @@
 <template>
   <div class="an-select">
     <el-select
-      :style="wide"
       v-model="value"
       :placeholder="placeholder"
       :multiple="multiple"
@@ -76,9 +75,15 @@ export default {
     };
   },
   components: {},
+  created() {
+    if (!this.multiple && this.initialValue && this.initialValue.length > 0) {
+      this.value = this.initialValue[0].id;
+    }
+  },
   methods: {
     //选中值发生变化时触发,value为目前的选中值
     change(value) {
+      console.log("sdssdssd");
       console.log(value);
       this.$emit("change", value);
     },

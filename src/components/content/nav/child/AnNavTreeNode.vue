@@ -14,15 +14,15 @@
             :icon="isOpen ? 'el-icon-arrow-down' : 'el-icon-arrow-right'"
             :size="18"
           ></an-icon>
-          <an-icon v-else :size="12" :icon="stateIcon"></an-icon>
+          <an-icon v-if="pData.state" :size="12" :icon="stateIcon"></an-icon>
         </div>
         <div class="info" @click="nodeClick">
           {{ pData.name }}
         </div>
       </div>
-      <ul v-if="pData.children" v-show="isOpen">
+      <ul v-if="pData.childrenList" v-show="isOpen">
         <an-nav-tree-node
-          v-for="child in pData.children"
+          v-for="child in pData.childrenList"
           :pData="child"
           :key="child.id"
           :level="level + 1"
@@ -49,7 +49,7 @@ export default {
       default: true, //是否自动展开选中的节点，默认是
     },
     pData: {
-      type: Object, //元素必须包含id,和name元素，其中有子节点的必须包含children子列表
+      type: Object, //元素必须包含id,和name元素，其中有子节点的必须包含childrenList子列表
     },
     eventKey: {
       type: String, //因为通过事件通过总线发送，当一个页面有多个树时，为了准确由父级树确定事件由子节点产生
@@ -68,7 +68,7 @@ export default {
   computed: {
     //是否返回
     isFolder() {
-      return this.pData.children && this.pData.children.length > 0;
+      return this.pData.childrenList && this.pData.childrenList.length > 0;
     },
     //最末级子节点展示的图标
     stateIcon() {
