@@ -7,6 +7,10 @@
           @input="inputChange"
         ></an-input>
       </div>
+      <div v-if="name" class="title">
+        {{ name }}
+        <span class="change-func" @click="changeFuncClick">切换</span>
+      </div>
       <ul class="tree-area" ref="treeArea">
         <an-nav-tree-node
           v-for="item in pData"
@@ -30,6 +34,12 @@ import { debounce } from "common/other/debounce";
 export default {
   name: "AnNavTree",
   props: {
+    height: {
+      type: Number, //组件总的高度
+    },
+    name: {
+      type: String, //名称
+    },
     showSearch: {
       type: Boolean,
       default: true, //是否展示搜索框，默认为否
@@ -278,9 +288,19 @@ export default {
   created() {
     this.initData(this.pData);
   },
+  mounted() {
+    this.debounceSearch = debounce(this.search);
+    this.$bus.$on("nodeClick", (node, eventKey) => {
+      this.nodeClick(node, eventKey);
+    });
+  },
+  watch: {
+    height() {
+      this.initStyle();
+    },
+  },
   methods: {
     //对树列表进行数据初始化，判断各节点及其子节点的选中状态
-
     initData(itemList) {
       for (let i = 0; i < itemList.length; i++) {
         let item = itemList[i];
@@ -288,6 +308,19 @@ export default {
         if (item.children) {
           this.initData(item.children);
         }
+      }
+    },
+    initStyle() {
+      if (this.height) {
+        console.log(this.height);
+        let treeHeight = this.height;
+        if (this.showSearch) {
+          treeHeight -= 37;
+        }
+        if (this.name) {
+          treeHeight -= 35;
+        }
+        this.$refs.treeArea.style.height = treeHeight + "px";
       }
     },
     //根据搜索关键字,设置节点展示
@@ -383,9 +416,9 @@ export default {
     //搜素框变化时，根据输入内容检索树
     inputChange(value) {
       if (value) {
-        this.searchNode(value);
+        this.debounceSearch(value);
       } else {
-        this.searchNode();
+        this.debounceSearch();
       }
     },
     //根据搜素关键字显示树
@@ -413,9 +446,45 @@ export default {
       this.recoverShowState(this.pData);
       this.showSelectedTree = false;
     },
+    //点击切换按钮
+    changeFuncClick() {
+      this.$emit("changeFuncClick");
+    },
   },
 };
 </script>
 
 <style scoped>
+.main {
+  background-color: white;
+  width: 200px;
+  border: 1px solid #ccc;
+  display: flex;
+  flex-direction: column;
+}
+
+.search >>> input[type="text"] {
+  height: 35px;
+  line-height: 35px;
+  border-radius: 0;
+}
+.title {
+  width: 100%;
+  line-height: 35px;
+  text-align: left;
+  position: relative;
+  text-indent: 10px;
+  font-size: 700;
+}
+.change-func {
+  position: absolute;
+  right: 18px;
+  color: var(--mainColor);
+}
+.change-func:hover {
+  cursor: pointer;
+}
+.tree-area {
+  overflow-y: auto;
+}
 </style>

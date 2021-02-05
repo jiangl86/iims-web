@@ -14,7 +14,7 @@
             :icon="isOpen ? 'el-icon-arrow-down' : 'el-icon-arrow-right'"
             :size="18"
           ></an-icon>
-          <an-icon v-else :size="18" :icon="stateIcon"></an-icon>
+          <an-icon v-else :size="12" :icon="stateIcon"></an-icon>
         </div>
         <div class="info" @click="nodeClick">
           {{ pData.name }}
@@ -70,6 +70,18 @@ export default {
     isFolder() {
       return this.pData.children && this.pData.children.length > 0;
     },
+    //最末级子节点展示的图标
+    stateIcon() {
+      if (this.pData.state == "3") {
+        return "el-icon-warning";
+      } else if (this.pData.state == "2") {
+        return "el-icon-success";
+      } else if (this.pData.state == "1") {
+        return "el-icon-remove";
+      } else {
+        return "el-icon-s-opportunity";
+      }
+    },
   },
   created() {},
 
@@ -87,4 +99,32 @@ export default {
 </script>
 
 <style scoped>
+.an-nav-tree-node > li > div {
+  width: 100%;
+  line-height: 35px;
+  display: flex;
+  align-items: center;
+}
+.decorate {
+  display: flex;
+}
+.left-indent {
+  display: inline-flex;
+  width: 10px;
+}
+
+.info {
+  padding-left: 2px;
+  position: relative;
+  flex: 1;
+  text-align: left;
+  display: flex;
+}
+.info > div {
+  color: green;
+  position: absolute;
+  right: 10px;
+  top: center;
+  align-self: center;
+}
 </style>

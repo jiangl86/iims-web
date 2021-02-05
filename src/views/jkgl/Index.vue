@@ -1,21 +1,32 @@
 <template>
   <div class="jkgl-index">
-    <div class="left-nav"></div>
+    <div class="left-nav" ref="leftNav">
+      <an-nav-tree name="接口管理系统" :height="treeHeight"></an-nav-tree>
+    </div>
     <div class="content"></div>
   </div>
 </template>
 
 <script>
+import AnNavTree from "components/content/nav/AnNavTree";
 export default {
   name: "JkglIndex",
   data() {
     return {
       modules: [],
       interfaces: [],
+
+      treeHeight: 0,
     };
   },
-  components: {},
+  components: {
+    AnNavTree,
+  },
   created() {},
+  mounted() {
+    this.treeHeight = this.$refs.leftNav.offsetHeight;
+    console.log(this.treeHeight);
+  },
 };
 </script>
 
