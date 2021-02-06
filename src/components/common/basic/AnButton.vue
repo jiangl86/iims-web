@@ -2,6 +2,8 @@
   <div class="an-button">
     <button
       :style="{ backgroundColor: color, color: letterColor }"
+      @mouseenter="buttonName = alt ? alt : name"
+      @mouseleave="buttonName = name"
       ref="button"
     >
       <an-icon
@@ -12,7 +14,7 @@
         class="icon"
         ref="icon"
       ></an-icon>
-      {{ name }}
+      {{ buttonName }}
       <an-icon
         v-if="icon && iconAfter"
         :icon="icon"
@@ -38,6 +40,9 @@ export default {
   props: {
     name: {
       type: String, //图标名字
+    },
+    alt: {
+      type: String, //提示文字
     },
     width: {
       type: Number, //图标宽度，单位为px,正常情况下不传该值，由内容自动扩充，若传该值将以该值为主
@@ -71,7 +76,9 @@ export default {
     },
   },
   data() {
-    return {};
+    return {
+      buttonName: this.name,
+    };
   },
   components: {
     AnIcon,

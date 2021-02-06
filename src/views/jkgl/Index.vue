@@ -16,7 +16,21 @@
               name="接口状态"
               :options="stateOptions"
               :initialValue="initialState"
+              mul
             ></an-label-dropdown-select>
+          </div>
+          <div class="format-funcs">
+            <an-button
+              name="格式化"
+              alt="快捷键ctrl+shift+L"
+              @click.native="debounceDataFormat"
+            ></an-button>
+            <an-checkbox
+              label="自动"
+              :initialChecked="autoFormatState"
+              @change="autoFormateStateChange"
+              ref="autoCheckbox"
+            ></an-checkbox>
           </div>
           <div class="buttons">
             <an-button name="取消" @click.native="cancelAdd"></an-button>
@@ -30,7 +44,8 @@
         <div class="info">
           <textarea
             v-model="newInterfaceDetail"
-            @keyup.enter="dataProcess"
+            @keyup="dataInput"
+            @keydown.ctrl.shift.76.exact="debounceDataFormat"
           ></textarea>
         </div>
       </div>
@@ -59,10 +74,12 @@ import AnTree from "components/common/show/AnTree";
 import AnInput from "components/common/basic/AnInput";
 import AnButton from "components/common/basic/AnButton";
 import AnLabelDropdownSelect from "components/common/form/AnLabelDropdownSelect";
+import AnCheckbox from "components/common/basic/AnCheckbox";
 
 import AnMsgbox from "components/common/popup/AnMsgbox";
 import { post, put } from "network/request";
 import { arrayToTree, addKeysToData } from "common/array/arrayprocess";
+import { debounce } from "common/other/debounce";
 export default {
   name: "JkglIndex",
   data() {
@@ -83,13 +100,14 @@ export default {
       ],
       initialState: [{ id: 1, name: "未完成" }],
 
-      newInterfaceDetail: "",
-      detailLength: 0, //字符长度，用于中文字符输入时判断是否实际输入了字符，因为中文keycode都是229
-      textIndent: 0, //回车时，默认的缩进数量
+      newInterfaceDetail: "", //最终输入的数据
+      lastInterfaceDetail: "",
+      autoFormatState: false, //是否自动格式化
 
       moduleInterfaceTreeData: [], //最终处理后用于展示的树
+      treeHeight: 0, //树高度，用于组件展示
 
-      treeHeight: 0,
+      debounceDataFormat: null,
     };
   },
   components: {
@@ -98,10 +116,15 @@ export default {
     AnInput,
     AnButton,
     AnLabelDropdownSelect,
+    AnCheckbox,
   },
   created() {
     this.initData();
-    console.log(this.modules);
+
+    if (localStorage.getItem("autoFormatState") == "true") {
+      this.autoFormatState = true;
+    }
+    this.debounceDataFormat = debounce(this.dataFormat, 300);
   },
   mounted() {
     this.treeHeight = this.$refs.leftNav.offsetHeight;
@@ -110,9 +133,6 @@ export default {
   // @keyup.221="minusTextIndent"
   // @keyup.229="processTextIndent"
   methods: {
-    aaa(event) {
-      console.log(event.keyCode);
-    },
     //初始化数据
     initData() {
       //首先判断之前有没有缓存过查看的项目，先选择要查看的项目
@@ -135,13 +155,14 @@ export default {
     initTreeData() {
       //先给interface加上Parent_id属性
       addKeysToData(this.interfaces, ["parent_id"], ["module_id"]);
-      console.log(this.interfaces);
       //首先将modules和Interfaces组合成一个数组
       let moduleAndInterfaces = [];
       moduleAndInterfaces.push(...this.modules);
       moduleAndInterfaces.push(...this.interfaces);
+      console.log(moduleAndInterfaces);
       //转换成树结构
       this.moduleInterfaceTreeData = arrayToTree(moduleAndInterfaces);
+      console.log(this.moduleInterfaceTreeData);
     },
     //获取所有可以查看的项目
     getProjects() {
@@ -175,6 +196,7 @@ export default {
         .then((res) => {
           console.log(res);
           if (res.ret == 0) {
+            console.log(res);
             if (res.ret_module_list) {
               this.modules = res.ret_module_list;
             }
@@ -209,91 +231,158 @@ export default {
       this.getModulesInterfaces();
       this.showSelectProject = false;
     },
-    dataProcess(event) {
-      //   console.log(event);
-      //   console.log(event.keyCode);
-      //   console.log(event.key);
-      //   let code = event.keyCode;
-      //   let character = event.key;
-      //   //如果是{或者[符号
-      //   if (code == 219) {
-      //     this.addTextIndent();
-      //   }
-      //   //如果是}或者]符号
-      //   else if (code == 221) {
-      //     this.minusTextIndent();
-      //   }
-      //   //如果是#符号
-      //   else if (code == 51 && character == "#") {
-      //   }
-      //   if (this.textIndent > 0) {
-      //     for (let i = 0; i < this.textIndent; i++) {
-      //       this.newInterfaceDetail += " ";
-      //     }
-      //   }
-      let textIndentNum = 0; //需要缩进的符号数量，为{和[符号数量,}和]符号数量之差
-      let rightBraceNum = 0; //
-      let newValue = this.newInterfaceDetail[0];
-      for (let i = 1; i < this.newInterfaceDetail.length; i++) {
-        let code = this.newInterfaceDetail[i];
-        //如果是code符，进行换行并缩进
-        if (code == "{" || code == "[") {
-          newValue += "\n";
-          for (let j = 0; j < textIndentNum; j++) {
-            newValue += "  "; //每次缩进两字符
-          }
-          newValue += code;
-          newValue += "\n";
-          for (let j = 0; j < textIndentNum; j++) {
-            newValue += "  "; //每次缩进两字符
-          }
-          textIndentNum++;
-        } else if (code == "}" || code == "]") {
-          textIndentNum = textIndentNum > 0 ? textIndentNum - 1 : 0;
-          newValue += "\n";
-          for (let j = 0; j < textIndentNum; j++) {
-            newValue += "  "; //每次缩进两字符
-          }
-          newValue += code;
-          newValue += "\n";
-          for (let j = 0; j < textIndentNum; j++) {
-            newValue += "  "; //每次缩进两字符
-          }
-        } else {
-          newValue += code;
-        }
-        if (code == "\n") {
-          console.log("11");
+
+    //对输入数据进行处理
+    dataInput(event) {
+      console.log(event.keyCode);
+      //如果是在结尾进行回车，且是自动格式化状态，则进行格式化
+      if (event.keyCode == 13) {
+        console.log("aa");
+        let temp = this.lastInterfaceDetail + "\n";
+        if (this.newInterfaceDetail == temp && this.autoFormatState) {
+          this.debounceDataFormat();
         }
       }
+      this.lastInterfaceDetail = this.newInterfaceDetail;
+    },
+
+    //数据格式化处理
+    dataFormat() {
+      let textIndentNum = 0; //需要缩进的符号数量，为{和[符号数量,}和]符号数量之差
+      let annotation = false; //标识当前code是否是注释，系统内注释符号只有'//'
+      let detailValue = this.newInterfaceDetail;
+      //先删除数据里面的空格和tab(包括中文和英文的），后续由格式化自动产生
+      detailValue = detailValue.replaceAll(" ", "");
+      detailValue = detailValue.replaceAll("	", "");
+
+      //产生新的格式化数据
+      let newValue = detailValue[0];
+      //从一开始，到最后一个直接结束是为了减少循环内部的越界判断
+      let detailValueLength = detailValue.length - 1;
+      for (let i = 1; i < detailValueLength; i++) {
+        let code = detailValue[i];
+        let nextCode = detailValue[i + 1];
+        let lastCodeOfNewValueIndex = newValue.length - 1;
+        let lastCodeOfNewValue = newValue[lastCodeOfNewValueIndex]; //新数据的最后一个字符
+
+        //先判断内容是否是注释，如果是注释内容不做任何格式化处理
+        if (code == "/" && nextCode == "/" && !annotation) {
+          annotation = true;
+          //如果注释前无空格，在注释前加一个空格将数据分隔开
+          if (lastCodeOfNewValue != "") {
+            newValue += " ";
+          }
+        }
+        //如果遇到回车，则注释结束
+        if (code == "\n" && annotation) {
+          annotation = false;
+        }
+        //如果是在注释部分，直接复制其内容
+        if (annotation) {
+          newValue += code;
+        }
+        //如果是正文，开启格式化处理
+        else {
+          //如果连续多个回车键，则仅保留一个，并处理下一行数据前的缩进
+          if (code == "\n") {
+            if (lastCodeOfNewValue != "\n") {
+              console.log(lastCodeOfNewValue);
+
+              newValue += code;
+              console.log(newValue);
+              //如果下一个字符是普通字符，输入之前先进行缩进
+              if (
+                nextCode != "\n" &&
+                nextCode != "{" &&
+                nextCode != "[" &&
+                nextCode != "}" &&
+                nextCode != "]"
+              ) {
+                for (let j = 0; j < textIndentNum; j++) {
+                  newValue += "  "; //每次缩进两字符
+                }
+              }
+            }
+          } else if (code == "{" || code == "[") {
+            //如果格式化数据中最后一个不是换行符，先进行换行
+            if (lastCodeOfNewValue != "\n") {
+              newValue += "\n";
+            }
+            //采用空格进行缩进
+            for (let j = 0; j < textIndentNum; j++) {
+              newValue += "  "; //每次缩进两字符
+            }
+            newValue += code;
+
+            textIndentNum++;
+            newValue = this.procssNextLineIndex(
+              nextCode,
+              newValue,
+              textIndentNum
+            );
+          } else if (code == "}" || code == "]") {
+            textIndentNum = textIndentNum > 0 ? textIndentNum - 1 : 0;
+            //如果格式化数据最后一个字符不是换行，先换行
+            if (lastCodeOfNewValue != "\n") {
+              newValue += "\n";
+            }
+            //进行数据缩进
+            for (let j = 0; j < textIndentNum; j++) {
+              newValue += "  "; //每次缩进两字符
+            }
+            newValue += code;
+            //如果下一个是，直接处理该字符，跳过下一个循环
+            if (nextCode == "," || nextCode == "，") {
+              newValue += nextCode;
+              i++;
+              nextCode = detailValue[i + 1];
+            }
+            newValue = this.procssNextLineIndex(
+              nextCode,
+              newValue,
+              textIndentNum
+            );
+          } else {
+            newValue += code;
+          }
+        }
+      }
+      //处理##name,##desc等数据，在前面加换行隔开，在后面加空格
+      newValue = newValue.replace("##name", "\n##name ");
+      newValue = newValue.replace("##desc", "\n##desc ");
+      newValue = newValue.replace("##address", "\n##address ");
+      newValue = newValue.replace("##design", "\n##design ");
+      newValue = newValue.replace("##params", "\n##params ");
+      newValue = newValue.replace("##result", "\n##result ");
+      if (newValue[0] == "\n") {
+        newValue = newValue.substring(1);
+      }
+      newValue += detailValue[detailValueLength];
       this.newInterfaceDetail = newValue;
     },
-    processTextIndent(event) {
-      //仅实际输入了字符才处理
-      if (this.newInterfaceDetail.length != this.detailLength) {
-        let index = this.newInterfaceDetail.length - 1;
-        let character = this.newInterfaceDetail[index];
-        if (character == "{" || character == "{") {
-          this.addTextIndent();
-        } else if (character == "}" || character == "}") {
-          this.minusTextIndent();
+
+    //处理{[}]等符号后下一行缩进，及换行符后的缩进如果下一个字符是普通字符，输入之前先进行缩进
+    procssNextLineIndex(nextCode, newValue, textIndentNum) {
+      if (
+        nextCode != "\n" &&
+        nextCode != "{" &&
+        nextCode != "[" &&
+        nextCode != "}" &&
+        nextCode != "]"
+      ) {
+        newValue += "\n";
+        for (let j = 0; j < textIndentNum; j++) {
+          newValue += "  "; //每次缩进两字符
         }
       }
+      return newValue;
     },
-    addTextIndent() {
-      this.textIndent += 2;
-      this.detailLength = this.newInterfaceDetail.length;
-    },
-    minusTextIndent() {
-      if (this.textIndent > 0) {
-        this.newInterfaceDetail =
-          this.newInterfaceDetail.substring(
-            0,
-            this.newInterfaceDetail.length - 3
-          ) + "}";
-        this.textIndent -= 2;
-      }
-      this.detailLength = this.newInterfaceDetail.length;
+
+    //自动更新状态变更
+    autoFormateStateChange(value) {
+      this.autoFormatState = value;
+      console.log(this.autoFormatState);
+      localStorage.setItem("autoFormatState", this.autoFormatState);
     },
     //取消保存
     cancelAdd() {},
@@ -382,6 +471,10 @@ export default {
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid #ccc;
+}
+.title .format-funcs {
+  display: flex;
+  align-items: center;
 }
 .title .buttons {
   display: flex;
