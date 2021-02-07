@@ -4,16 +4,17 @@
       <div>
         <!--点击展开子节点 -->
         <div class="decorate" @click="toggle">
-          <span
-            v-for="index in level"
-            :key="pData.id + index"
-            class="left-indent"
-          ></span>
           <an-icon
             v-if="isFolder"
             :icon="isOpen ? 'el-icon-arrow-down' : 'el-icon-arrow-right'"
             :size="14"
           ></an-icon>
+          <span v-else class="left-indent"></span>
+          <span
+            v-for="index in level - 1"
+            :key="pData.id + index"
+            class="left-indent"
+          ></span>
         </div>
         <div class="info">
           {{ pData.name }}
@@ -98,7 +99,7 @@ export default {
 }
 .left-indent {
   display: inline-flex;
-  width: 18px;
+  width: 14px;
 }
 
 .info {

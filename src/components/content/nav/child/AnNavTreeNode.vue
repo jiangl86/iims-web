@@ -121,6 +121,10 @@ export default {
   display: flex;
   align-items: center;
 }
+.info {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
 .decorate {
   display: flex;
 }

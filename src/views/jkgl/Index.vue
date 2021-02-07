@@ -139,9 +139,16 @@
         <div class="overview" v-if="currentInterfaceId == 0">
           当前模块暂无接口
         </div>
-        <div class="detail" v-else>
+        <div
+          class="detail"
+          v-if="currentInterface != null && funcType == 'review'"
+        >
           <interface-info
-            name="aaa"
+            :name="currentInterface.name"
+            :description="currentInterface.description"
+            :address="currentInterface.address"
+            :design="currentInterface.design"
+            :params="currentInterface.params"
             :result="currentInterface.result"
           ></interface-info>
         </div>
@@ -350,7 +357,6 @@ export default {
       let moduleAndInterfaces = [];
       moduleAndInterfaces.push(...this.modules);
       moduleAndInterfaces.push(...this.interfaces);
-      console.log(moduleAndInterfaces);
       //转换成树结构
       this.moduleInterfaceTreeData = arrayToTreeOfModuleInterface(
         moduleAndInterfaces
@@ -365,7 +371,6 @@ export default {
       };
       put("/api/project", params)
         .then((res) => {
-          console.log(res);
           if (res.ret == 0 && res.retlist) {
             this.projects = res.retlist;
           } else {
@@ -373,7 +378,6 @@ export default {
           }
         })
         .catch((err) => {
-          console.log(err);
           AnMsgbox.msgbox({ message: "服务器错误，请稍后再试" });
         });
     },
@@ -386,9 +390,7 @@ export default {
       };
       put("/api/interface", params)
         .then((res) => {
-          console.log(res);
           if (res.ret == 0) {
-            console.log(res);
             if (res.ret_module_list) {
               this.modules = res.ret_module_list;
               for (let i = 0; i < this.modules.length; i++) {
@@ -470,7 +472,6 @@ export default {
           this.moduleInterfaceTreeData,
           this.currentModuleId
         );
-        console.log(this.currentModule);
         this.currentModuleName = this.currentModule.name;
         this.currentFuncRight = this.currentModule.funcRight;
         this.currentInterfaceId = item.id;
@@ -498,8 +499,8 @@ export default {
         };
         put("/api/interface", params)
           .then((res) => {
-            console.log(res);
             this.currentInterface = res.data;
+            this.funcType = "review";
           })
           .catch((err) => {
             AnMsgbox.msgbox({ message: "暂时无法获取，请稍后再试" });
@@ -526,7 +527,6 @@ export default {
 
     //对输入数据进行处理
     dataInput(event) {
-      console.log(event.keyCode);
       //如果是在结尾进行回车，且是自动格式化状态，则进行格式化
       if (event.keyCode == 13) {
         let temp = this.lastInterfaceDetail + "\n";
@@ -580,10 +580,7 @@ export default {
           //如果连续多个回车键，则仅保留一个，并处理下一行数据前的缩进
           if (code == "\n") {
             if (lastCodeOfNewValue != "\n") {
-              console.log(lastCodeOfNewValue);
-
               newValue += code;
-              console.log(newValue);
               //如果下一个字符是普通字符，输入之前先进行缩进
               if (
                 nextCode != "\n" &&
@@ -677,13 +674,11 @@ export default {
     //自动更新状态变更
     autoFormatStateChange(value) {
       this.autoFormatState = value;
-      console.log(this.autoFormatState);
       localStorage.setItem("autoFormatState", this.autoFormatState);
     },
 
     //点击替换数据图标
     replaceClick() {
-      console.log("aa");
       this.showReplaceDiv = !this.showReplaceDiv;
     },
 
@@ -732,6 +727,10 @@ export default {
           name: "key_description",
           length: 6,
         });
+      }
+      let addressIndex = inputInterfaceDetail.indexOf("##address");
+      if (addressIndex != -1) {
+        indexArr.push({ index: addressIndex, name: "key_address", length: 9 });
       }
       let designIndex = inputInterfaceDetail.indexOf("##design");
       if (designIndex != -1) {
@@ -792,13 +791,12 @@ export default {
               }
               this.currentModule.childrenList.push(interfaceNode);
               this.currentModule.children = this.currentModule.children + 1;
-              console.log(this.currentModule);
+
               //设置当前选中接口为最新添加的接口
               this.currentInterfaceId = res.interface_id;
               this.currentInterfaceIndex++;
               //查询当前接口信息用于展示
               this.getInterfaceInfo();
-              this.funcType = "review";
             } else {
               AnMsgbox.msgbox({ message: res.msg });
             }
@@ -856,13 +854,11 @@ export default {
           .then((res) => {
             //保存成功后，删除缓存，同时将数据直接在前端修改对应数据
             if (res.ret == 0) {
-              console.log(this.tempInterfaceName);
               localStorage.removeItem("newInterfaceDetail");
               //修改对应数据节点内容
               this.currrentInterfaceNode.name = this.tempInterfaceName;
               //查询当前接口信息用于展示
               this.getInterfaceInfo();
-              this.funcType = "review";
             } else {
               AnMsgbox.msgbox({ message: res.msg });
             }
@@ -1006,7 +1002,7 @@ export default {
   height: calc(100vh - 60px);
 }
 .left-nav {
-  width: 200px;
+  width: 260px;
   background-color: blue;
 }
 .content {
@@ -1068,6 +1064,7 @@ textarea:focus {
 .detail-div {
   display: flex;
   flex-direction: column;
+  padding: 0 10px;
 }
 .detail-div .title {
   height: 35px;
@@ -1076,7 +1073,6 @@ textarea:focus {
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid #ccc;
-  padding: 0 10px;
 }
 .detail-div .funcs {
   display: flex;
@@ -1094,5 +1090,6 @@ textarea:focus {
 .detail-div .detail {
   width: 100%;
   height: calc(100vh - 100px);
+  overflow-y: auto;
 }
 </style>

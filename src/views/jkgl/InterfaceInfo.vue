@@ -11,11 +11,11 @@
     </div>
 
     <div v-if="params" class="params">
-      <div><span>接口请求参数</span>：</div>
-      <div>{{ design }}</div>
+      <div class="title"><span>接口请求参数</span>：</div>
+      <div><interface-info-tree :pData="paramsArr"></interface-info-tree></div>
     </div>
     <div v-if="result" class="result">
-      <div><span>接口返回信息</span>：</div>
+      <div class="title"><span>接口返回信息</span>：</div>
       <div><interface-info-tree :pData="resultArr"></interface-info-tree></div>
     </div>
   </div>
@@ -57,7 +57,11 @@ export default {
   },
   watch: {
     result() {
+      console.log(this.result);
       this.initResult();
+    },
+    params() {
+      this.initParams();
     },
   },
   created() {},
@@ -66,8 +70,19 @@ export default {
       if (this.result) {
         let formatStr = this.dataFormat(this.result);
         let tempArr = formatStr.split("\n");
-        this.resultArr = this.initTreeData(0, tempArr, -1).tree;
-        console.log(this.resultArr);
+        let treeArr = this.initTreeData(0, tempArr, -1).tree;
+        this.resultArr.splice(0, this.resultArr.length);
+        for (let i = 0; i < treeArr.length; i++) {
+          this.resultArr.push(treeArr[i]);
+        }
+      }
+    },
+    initParams() {
+      if (this.params) {
+        let formatStr = this.dataFormat(this.params);
+        let tempArr = formatStr.split("\n");
+        this.paramsArr.splice(0, this.paramsArr.length);
+        this.paramsArr.push(...this.initTreeData(0, tempArr, -1).tree);
       }
     },
     initTreeData(startIndex, tempArr, parent_id) {
@@ -197,7 +212,6 @@ export default {
       if (newValue[0] == "\n") {
         newValue = newValue.substring(1);
       }
-      console.log(newValue);
       return newValue;
     },
     //处理{[}]等符号后下一行缩进，及换行符后的缩进如果下一个字符是普通字符，输入之前先进行缩进
@@ -224,5 +238,37 @@ export default {
 .interface-info {
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  text-align: left;
+}
+.name {
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 10px;
+}
+.description {
+  font-size: 14px;
+  margin-top: 15px;
+}
+.address {
+  margin-top: 15px;
+}
+.address span {
+  font-weight: 600;
+}
+.design,
+.params,
+.result {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+.design .title,
+.params .title,
+.result .title {
+  font-weight: 600;
 }
 </style>

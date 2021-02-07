@@ -222,7 +222,7 @@ export default {
 <style scoped>
 .main {
   background-color: white;
-  width: 200px;
+  width: 260px;
   border: 1px solid #ccc;
   display: flex;
   flex-direction: column;
