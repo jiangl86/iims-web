@@ -52,6 +52,9 @@
           :pData="othersUsers"
           ref="others"
         ></an-label-popup-select>
+        <span class="explain"
+          >*普通人员中的数据若已在开发人员中存在，对应人员不会被保存</span
+        >
         <div class="func">
           <an-button name="取消" @click.native="cancel"></an-button>
           <an-button name="确定" @click.native="assert"></an-button>
@@ -196,7 +199,6 @@ export default {
         this.developerInitialValue = selected[0].developer_names;
         this.othersInitialValue = selected[0].others_names;
       }
-      console.log(selected[0].developer_names);
       this.showDetail = true;
     },
     //点击修改按钮
@@ -284,6 +286,21 @@ export default {
       }
       let data = {};
       data.name = name.trim();
+      //判断开发人员和普通人员中是否有重复的数据,若含有重复的,若有删除重复数据
+      if (
+        this.$refs.developer.selected.length > 0 &&
+        this.$refs.others.selected.length > 0
+      ) {
+        let devs = this.$refs.developer.selected;
+        let others = this.$refs.others.selected;
+        for (let i = others.length - 1; i >= 0; i--) {
+          for (let j = 0; j < devs.length; j++) {
+            if (others[i].id == devs.id) {
+              others.splice(i, 1);
+            }
+          }
+        }
+      }
       let developer_names = "";
       if (this.$refs.developer.selected.length > 0) {
         let ids = "";
@@ -311,6 +328,7 @@ export default {
         others_names = others_names.substring(0, others_names.length - 1);
         data.others = ids;
       }
+
       let params = {
         user_id: localStorage.getItem("user_id"),
         data: data,
@@ -428,6 +446,11 @@ export default {
   color: white;
   font-size: var(--font-size-md);
   background-color: var(--mainColor);
+}
+.info .explain {
+  align-self: start;
+  padding-left: 120px;
+  color: #666;
 }
 .info .func {
   display: flex;

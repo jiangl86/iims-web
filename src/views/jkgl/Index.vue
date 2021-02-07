@@ -6,19 +6,25 @@
         :height="treeHeight"
         :pData="moduleInterfaceTreeData"
         @changeFuncClick="selectProject"
+        @nodeClick="nodeClick"
       ></an-nav-tree>
     </div>
     <div class="content">
-      <div class="add-div">
+      <!-- 添加或者修改页面 -->
+      <div class="add-div" v-if="funcType == 'add' || funcType == 'edit'">
         <div class="title">
+          <div class="module">
+            <label>所属模块：</label> {{ currentModuleName }}
+          </div>
           <div class="state">
             <an-label-dropdown-select
               name="接口状态"
               :options="stateOptions"
               :initialValue="initialState"
-              mul
+              ref="interfaceState"
             ></an-label-dropdown-select>
           </div>
+          <!-- 数据格式化按钮 -->
           <div class="format-funcs">
             <an-button
               name="格式化"
@@ -28,12 +34,17 @@
             <an-checkbox
               label="自动"
               :initialChecked="autoFormatState"
-              @change="autoFormateStateChange"
+              @change="autoFormatStateChange"
               ref="autoCheckbox"
             ></an-checkbox>
           </div>
+          <!-- 文本替换按钮 -->
+          <div class="repalce-funcs">
+            <an-button name="替换" @click.native="replaceClick"></an-button>
+          </div>
+
           <div class="buttons">
-            <an-button name="取消" @click.native="cancelAdd"></an-button>
+            <an-button name="取消" @click.native="cancel"></an-button>
             <an-button
               name="保存"
               @click.native="save"
@@ -41,6 +52,25 @@
             ></an-button>
           </div>
         </div>
+        <!-- 数据替换窗口 -->
+        <div class="replace-div" v-show="showReplaceDiv">
+          <an-input placeholder="被替换的字符" ref="dataFrom"></an-input>
+          <an-input placeholder="替换为" ref="dataTo"></an-input>
+          <an-button
+            name="替换"
+            @click.native="replaceData('single')"
+          ></an-button>
+          <an-button
+            name="全文替换"
+            @click.native="replaceData('all')"
+          ></an-button>
+          <an-icon
+            :icon="closeIcon"
+            :size="24"
+            @click.native="showReplaceDiv = false"
+          ></an-icon>
+        </div>
+        <!-- 接口数据新增、修改录入 -->
         <div class="info">
           <textarea
             v-model="newInterfaceDetail"
@@ -49,9 +79,71 @@
           ></textarea>
         </div>
       </div>
-      <div class="detail-div">
+      <!-- 接口查看页面 -->
+      <div v-else class="detail-div">
         <div class="funcs">
-          <an-button name=""></an-button>
+          <an-button
+            v-if="showAdd"
+            name="新建"
+            round
+            @click.native="add"
+          ></an-button>
+          <an-button
+            v-if="showEdit"
+            name="修改"
+            round
+            @click.native="edit"
+          ></an-button>
+          <an-button
+            v-if="showDel"
+            name="删除"
+            round
+            @click.native="del"
+          ></an-button>
+          <an-button
+            name="报错"
+            v-if="showError"
+            round
+            @click.native="updateState('wrong')"
+          ></an-button>
+          <an-button
+            name="完成"
+            v-if="showFinish"
+            round
+            @click.native="updateState('finish')"
+          ></an-button>
+        </div>
+
+        <div class="title">
+          <div class="module">
+            <label>所属模块：</label> {{ currentModuleName }}
+          </div>
+          <div class="buttons">
+            <an-button
+              v-show="currentInterfaceId != 0"
+              name="历史记录"
+              @click.native="history"
+            ></an-button>
+            <an-button
+              v-show="showPrev"
+              name="上一个"
+              @click.native="prevInterface"
+            ></an-button>
+            <an-button
+              v-show="showNext"
+              name="下一个"
+              @click.native="nextInterface"
+            ></an-button>
+          </div>
+        </div>
+        <div class="overview" v-if="currentInterfaceId == 0">
+          当前模块暂无接口
+        </div>
+        <div class="detail" v-else>
+          <interface-info
+            name="aaa"
+            :result="currentInterface.result"
+          ></interface-info>
         </div>
       </div>
     </div>
@@ -75,11 +167,18 @@ import AnInput from "components/common/basic/AnInput";
 import AnButton from "components/common/basic/AnButton";
 import AnLabelDropdownSelect from "components/common/form/AnLabelDropdownSelect";
 import AnCheckbox from "components/common/basic/AnCheckbox";
+import AnIcon from "components/common/basic/AnIcon";
+
+import InterfaceInfo from "./InterfaceInfo";
 
 import AnMsgbox from "components/common/popup/AnMsgbox";
 import { post, put } from "network/request";
-import { arrayToTree, addKeysToData } from "common/array/arrayprocess";
+import {
+  arrayToTreeOfModuleInterface,
+  addKeysToData,
+} from "common/array/arrayprocess";
 import { debounce } from "common/other/debounce";
+import IconConstant from "common/constant/iconConstant";
 export default {
   name: "JkglIndex",
   data() {
@@ -93,12 +192,25 @@ export default {
       moduleRight: {}, //各模块对应权限的map,key值为m+moduleid,如m211
       showSelectProject: false, //是否展示选择项目的弹框
       stateOptions: [
-        { id: 0, name: "设计中" },
-        { id: 1, name: "未完成" },
-        { id: 2, name: "已完成" },
-        { id: 3, name: "异常" },
+        { id: "0", name: "设计中" },
+        { id: "1", name: "未完成" },
+        { id: "2", name: "已完成" },
+        { id: "3", name: "异常" },
       ],
-      initialState: [{ id: 1, name: "未完成" }],
+
+      funcType: "review", //当前操作，包括add添加,edit编辑,review查看
+
+      currentModule: null, //当前操作信息对应的模块
+      currentModuleName: "ssss", //当前选中模块名称
+      currentModuleId: 0, //当前选中模块id
+      currentFuncRight: 0, //当前所选模块功能权限
+      currentInterface: null, //当前选中节点完整信息，包含历史记录
+      currrentInterfaceNode: null, //当前选中节点的概要信息，主要对应左侧的树节点
+      currentInterfaceId: 0, //当前选中的接口id
+      currentInterfaceIndex: 0, //当前选中接口在模块中对应的索引顺序
+      initialState: [{ id: "1", name: "未完成" }], //接口初始状态
+
+      tempInterfaceName: "", //用于临时保存接口名称，以便于前端直接替换接口名称数据
 
       newInterfaceDetail: "", //最终输入的数据
       lastInterfaceDetail: "",
@@ -108,6 +220,9 @@ export default {
       treeHeight: 0, //树高度，用于组件展示
 
       debounceDataFormat: null,
+
+      showReplaceDiv: false, //是否展示数据替换窗口
+      closeIcon: IconConstant.CloseIcon, //关闭图标
     };
   },
   components: {
@@ -117,6 +232,82 @@ export default {
     AnButton,
     AnLabelDropdownSelect,
     AnCheckbox,
+    AnIcon,
+    InterfaceInfo,
+  },
+  computed: {
+    showPrev() {
+      //仅当当前选中模块下已经选中的接口前还有接口时才展示下一个
+      if (this.currentInterfaceId != 0 && this.currentModule) {
+        for (let i = this.currentInterfaceIndex - 1; i >= 0; i--) {
+          let child = this.currentModule.childrenList[i];
+          if (child.type == "2") {
+            return true;
+          }
+        }
+      } else {
+        return false;
+      }
+    },
+    showNext() {
+      //仅当当前选中模块下已经选中的接口后有接口时才展示下一个
+      if (this.currentInterfaceId != 0 && this.currentModule) {
+        for (
+          let i = this.currentInterfaceIndex + 1;
+          i < this.currentModule.childrenList.length;
+          i++
+        ) {
+          let child = this.currentModule.childrenList[i];
+          if (child.type == "2") {
+            return true;
+          }
+        }
+      } else {
+        return false;
+      }
+    },
+    showAdd() {
+      if (
+        this.currentFuncRight &&
+        this.currentFuncRight.addFlag &&
+        this.currentFuncRight.addFlag == "1"
+      ) {
+        return true;
+      }
+      return false;
+    },
+    showEdit() {
+      if (
+        this.currentFuncRight &&
+        this.currentFuncRight.editFlag &&
+        this.currentFuncRight.editFlag == "1" &&
+        this.currentInterfaceId != 0
+      ) {
+        return true;
+      }
+      return false;
+    },
+    showDel() {
+      if (
+        this.currentFuncRight &&
+        this.currentFuncRight.delFlag &&
+        this.currentFuncRight.delFlag == "1" &&
+        this.currentInterfaceId != 0
+      ) {
+        return true;
+      }
+      return false;
+    },
+    showError() {
+      return this.currentInterface && this.currentInterface.state == "2"
+        ? true
+        : false;
+    },
+    showFinish() {
+      return this.currentInterface && this.currentInterface.state != "2"
+        ? true
+        : false;
+    },
   },
   created() {
     this.initData();
@@ -161,8 +352,9 @@ export default {
       moduleAndInterfaces.push(...this.interfaces);
       console.log(moduleAndInterfaces);
       //转换成树结构
-      this.moduleInterfaceTreeData = arrayToTree(moduleAndInterfaces);
-      console.log(this.moduleInterfaceTreeData);
+      this.moduleInterfaceTreeData = arrayToTreeOfModuleInterface(
+        moduleAndInterfaces
+      );
     },
     //获取所有可以查看的项目
     getProjects() {
@@ -199,12 +391,22 @@ export default {
             console.log(res);
             if (res.ret_module_list) {
               this.modules = res.ret_module_list;
+              for (let i = 0; i < this.modules.length; i++) {
+                this.$set(this.modules[i], "type", "1"); //type:1表示模块
+              }
             }
             if (res.ret_interface_list) {
               this.interfaces = res.ret_interface_list;
+              for (let i = 0; i < this.interfaces.length; i++) {
+                this.$set(this.interfaces[i], "type", "2"); //type:1表示接口
+              }
             }
-            this.initModuleRight();
+            //将数据格式化为树形结构
             this.initTreeData();
+            //默认展示第一个模块的接口
+            if (this.moduleInterfaceTreeData.length > 0) {
+              this.nodeClick(this.moduleInterfaceTreeData[0]);
+            }
           } else {
             AnMsgbox.msgbox({ message: res.msg });
           }
@@ -232,17 +434,108 @@ export default {
       this.showSelectProject = false;
     },
 
+    //点击左侧功能
+    nodeClick(item) {
+      //如果点击的是模块
+      if (item.type == "1") {
+        this.currentModule = item;
+        this.currentModuleName = item.name;
+        this.currentModuleId = item.id;
+        this.currentFuncRight = item.funcRight;
+        //如果有子接口，默认展示第一个接口
+        let hasInterface = false;
+        if (item.childrenList) {
+          for (let i = 0; i < item.childrenList.length; i++) {
+            let child = item.childrenList[i];
+            if (child.type == "2") {
+              this.currentInterfaceId = child.id;
+              this.currentInterfaceIndex = i;
+              this.currrentInterfaceNode = child;
+              hasInterface = true;
+              break;
+            }
+          }
+        }
+        if (!hasInterface) {
+          this.currentInterfaceId = 0;
+          this.currentInterfaceIndex = -1;
+          this.currentInterface = null;
+          this.currrentInterfaceNode = null;
+        }
+      }
+      //如果点击的是接口
+      else {
+        this.currentModuleId = item.module_id;
+        this.currentModule = this.getModuleNode(
+          this.moduleInterfaceTreeData,
+          this.currentModuleId
+        );
+        console.log(this.currentModule);
+        this.currentModuleName = this.currentModule.name;
+        this.currentFuncRight = this.currentModule.funcRight;
+        this.currentInterfaceId = item.id;
+        this.currrentInterfaceNode = item;
+        //判断当前点击接口在模块中的索引号，用于上一个下一个操作
+        for (let i = 0; i < this.currentModule.childrenList.length; i++) {
+          let child = this.currentModule.childrenList[i];
+          if (child.id == item.id) {
+            this.currentInterfaceIndex = i;
+            break;
+          }
+        }
+      }
+      //获取接口相信信息
+      this.getInterfaceInfo();
+    },
+
+    getInterfaceInfo() {
+      //获取接口相信信息
+      if (this.currentInterfaceId != 0) {
+        let params = {
+          action: "get_info",
+          user_id: localStorage.getItem("user_id"),
+          interface_id: this.currentInterfaceId,
+        };
+        put("/api/interface", params)
+          .then((res) => {
+            console.log(res);
+            this.currentInterface = res.data;
+          })
+          .catch((err) => {
+            AnMsgbox.msgbox({ message: "暂时无法获取，请稍后再试" });
+          });
+      }
+    },
+
+    //根据模块id获取对应的模块item,其中list是树形列表结果
+    getModuleNode(list, moduleId) {
+      for (let i = 0; i < list.length; i++) {
+        let node = list[i];
+        if (node.id == moduleId && node.type == "1") {
+          return node;
+        }
+        if (node.childrenList) {
+          let child = this.getModuleNode(node.childrenList, moduleId);
+          if (child != null) {
+            return child;
+          }
+        }
+      }
+      return null;
+    },
+
     //对输入数据进行处理
     dataInput(event) {
       console.log(event.keyCode);
       //如果是在结尾进行回车，且是自动格式化状态，则进行格式化
       if (event.keyCode == 13) {
-        console.log("aa");
         let temp = this.lastInterfaceDetail + "\n";
         if (this.newInterfaceDetail == temp && this.autoFormatState) {
           this.debounceDataFormat();
         }
+        localStorage.setItem("newInterfaceDetail", this.newInterfaceDetail);
       }
+
       this.lastInterfaceDetail = this.newInterfaceDetail;
     },
 
@@ -256,6 +549,7 @@ export default {
       detailValue = detailValue.replaceAll("	", "");
 
       //产生新的格式化数据
+      detailValue = " " + detailValue; //最后处理完再把第一个给切掉
       let newValue = detailValue[0];
       //从一开始，到最后一个直接结束是为了减少循环内部的越界判断
       let detailValueLength = detailValue.length - 1;
@@ -354,10 +648,12 @@ export default {
       newValue = newValue.replace("##design", "\n##design ");
       newValue = newValue.replace("##params", "\n##params ");
       newValue = newValue.replace("##result", "\n##result ");
+
+      newValue += detailValue[detailValueLength];
+      newValue = newValue.substring(1); //剪掉之前加的第一个字符
       if (newValue[0] == "\n") {
         newValue = newValue.substring(1);
       }
-      newValue += detailValue[detailValueLength];
       this.newInterfaceDetail = newValue;
     },
 
@@ -379,23 +675,57 @@ export default {
     },
 
     //自动更新状态变更
-    autoFormateStateChange(value) {
+    autoFormatStateChange(value) {
       this.autoFormatState = value;
       console.log(this.autoFormatState);
       localStorage.setItem("autoFormatState", this.autoFormatState);
     },
+
+    //点击替换数据图标
+    replaceClick() {
+      console.log("aa");
+      this.showReplaceDiv = !this.showReplaceDiv;
+    },
+
+    //替换数据
+    replaceData(type) {
+      let dataFrom = this.$refs.dataFrom.value;
+      let dataTo = this.$refs.dataTo.value;
+      if (dataFrom && dataTo) {
+        if (type == "all") {
+          this.newInterfaceDetail = this.newInterfaceDetail.replaceAll(
+            dataFrom,
+            dataTo
+          );
+        } else {
+          this.newInterfaceDetail = this.newInterfaceDetail.replace(
+            dataFrom,
+            dataTo
+          );
+        }
+      }
+    },
     //取消保存
-    cancelAdd() {},
+    cancel() {
+      this.funcType = "review";
+    },
     //保存
     save() {
-      let nameIndex = this.newInterfaceDetail.indexOf("##name");
+      if (!this.newInterfaceDetail) {
+        AnMsgbox.msgbox({ message: "必须填入接口名称" });
+        return;
+      }
+      let inputInterfaceDetail = this.newInterfaceDetail.replaceAll(" ", "");
+      inputInterfaceDetail = inputInterfaceDetail.replaceAll("    ", "");
+
+      let nameIndex = inputInterfaceDetail.indexOf("##name");
       if (nameIndex == -1) {
         AnMsgbox.msgbox({ message: "必须填入接口名称" });
         return;
       }
       let indexArr = [];
       indexArr.push({ index: nameIndex, name: "key_name", length: 6 });
-      let descriptionIndex = this.newInterfaceDetail.indexOf("##desc");
+      let descriptionIndex = inputInterfaceDetail.indexOf("##desc");
       if (descriptionIndex != -1) {
         indexArr.push({
           index: descriptionIndex,
@@ -403,15 +733,15 @@ export default {
           length: 6,
         });
       }
-      let designIndex = this.newInterfaceDetail.indexOf("##design");
+      let designIndex = inputInterfaceDetail.indexOf("##design");
       if (designIndex != -1) {
         indexArr.push({ index: designIndex, name: "key_design", length: 8 });
       }
-      let paramsIndex = this.newInterfaceDetail.indexOf("##params");
+      let paramsIndex = inputInterfaceDetail.indexOf("##params");
       if (paramsIndex != -1) {
         indexArr.push({ index: paramsIndex, name: "key_params", length: 8 });
       }
-      let resultIndex = this.newInterfaceDetail.indexOf("##result");
+      let resultIndex = inputInterfaceDetail.indexOf("##result");
       if (resultIndex != -1) {
         indexArr.push({ index: resultIndex, name: "key_result", length: 8 });
       }
@@ -421,28 +751,250 @@ export default {
       let data = {};
       for (let i = 0; i < indexArr.length - 1; i++) {
         let ele = indexArr[i];
-        data[ele.name] = this.newInterfaceDetail
+        data[ele.name] = inputInterfaceDetail
           .substring(ele.index + ele.length, indexArr[i + 1].index)
           .trim();
       }
       let lastEle = indexArr[indexArr.length - 1];
-      data[lastEle.name] = this.newInterfaceDetail
+      data[lastEle.name] = inputInterfaceDetail
         .substring(lastEle.index + lastEle.length)
         .trim();
-      data.module_id = 12;
-      console.log(data);
-      let params = {
-        action: "add_interface",
-        user_id: this.user_id,
-        data: data,
-      };
-      post("/api/interface", params)
-        .then((res) => {
-          console.log(res);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+      if (this.$refs.interfaceState.value != null) {
+        data.key_state = this.$refs.interfaceState.value;
+      } else if (this.initialState.length > 0) {
+        data.key_state = this.initialState[0].id;
+      }
+      data.module_id = this.currentModuleId;
+      this.tempInterfaceName = data.key_name;
+      if (this.funcType == "add") {
+        let params = {
+          action: "add_interface",
+          user_id: this.user_id,
+          data: data,
+        };
+        post("/api/interface", params)
+          .then((res) => {
+            //保存成功后，删除缓存，同时将数据直接在前端插入对应的树中
+            if (res.ret == 0) {
+              localStorage.removeItem("newInterfaceDetail");
+              //产生数据节点，插入对应的模块
+              let interfaceNode = {
+                id: res.interface_id,
+                name: this.tempInterfaceName,
+                show: true,
+                type: "2",
+                module_id: this.currentModuleId,
+                parent_id: this.currentModuleId,
+              };
+              if (!this.currentModule.childrenList) {
+                this.$set(this.currentModule, "childrenList", []);
+                this.$set(this.currentModule, "children", 0);
+              }
+              this.currentModule.childrenList.push(interfaceNode);
+              this.currentModule.children = this.currentModule.children + 1;
+              console.log(this.currentModule);
+              //设置当前选中接口为最新添加的接口
+              this.currentInterfaceId = res.interface_id;
+              this.currentInterfaceIndex++;
+              //查询当前接口信息用于展示
+              this.getInterfaceInfo();
+              this.funcType = "review";
+            } else {
+              AnMsgbox.msgbox({ message: res.msg });
+            }
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      } else if (this.funcType == "edit") {
+        //修改信息
+        //先判断修改后的信息是否和之前的相同，仅保存不相同的部分
+        let modData = {};
+        if (data.key_name && data.key_name != this.currentInterface.name) {
+          modData.key_name = data.key_name;
+        }
+        if (
+          data.key_design &&
+          data.key_design != this.currentInterface.design
+        ) {
+          modData.key_design = data.key_design;
+        }
+        if (
+          data.key_description &&
+          data.key_description != this.currentInterface.description
+        ) {
+          modData.key_description = data.key_description;
+        }
+        if (
+          data.key_address &&
+          data.key_address != this.currentInterface.address
+        ) {
+          modData.key_address = data.key_address;
+        }
+        if (
+          data.key_params &&
+          data.key_params != this.currentInterface.params
+        ) {
+          modData.key_params = data.key_params;
+        }
+        if (
+          data.key_result &&
+          data.key_result != this.currentInterface.result
+        ) {
+          modData.key_result = data.key_result;
+        }
+        if (data.key_state && data.key_state != this.currentInterface.state) {
+          modData.key_state = data.key_state;
+        }
+        let params = {
+          action: "update_interface",
+          user_id: localStorage.getItem("user_id"),
+          interface_id: this.currentInterfaceId,
+          data: modData,
+        };
+        post("/api/interface", params)
+          .then((res) => {
+            //保存成功后，删除缓存，同时将数据直接在前端修改对应数据
+            if (res.ret == 0) {
+              console.log(this.tempInterfaceName);
+              localStorage.removeItem("newInterfaceDetail");
+              //修改对应数据节点内容
+              this.currrentInterfaceNode.name = this.tempInterfaceName;
+              //查询当前接口信息用于展示
+              this.getInterfaceInfo();
+              this.funcType = "review";
+            } else {
+              AnMsgbox.msgbox({ message: res.msg });
+            }
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      }
+    },
+
+    //查看页面相关内容
+
+    //点击新增按钮
+    add() {
+      this.funcType = "add";
+      this.newInterfaceDetail = "";
+      if (localStorage.getItem("newInterfaceDetail")) {
+        this.newInterfaceDetail = localStorage.getItem("newInterfaceDetail");
+      }
+    },
+    //点击修改按钮
+    edit() {
+      this.newInterfaceDetail = "";
+      if (this.currentInterface.name) {
+        this.newInterfaceDetail += "##name " + this.currentInterface.name;
+      }
+      if (this.currentInterface.description) {
+        this.newInterfaceDetail +=
+          "##desc " + this.currentInterface.description;
+      }
+      if (this.currentInterface.address) {
+        this.newInterfaceDetail += "##address " + this.currentInterface.address;
+      }
+      if (this.currentInterface.design) {
+        this.newInterfaceDetail += "##design " + this.currentInterface.design;
+      }
+
+      if (this.currentInterface.params) {
+        this.newInterfaceDetail += "##params " + this.currentInterface.params;
+      }
+      if (this.currentInterface.result) {
+        this.newInterfaceDetail += "##result " + this.currentInterface.result;
+      }
+      if (this.currentInterface.state) {
+        this.initialState.splice(0, 1);
+        if (this.currentInterface.state == "0") {
+          this.initialState.splice(0, 0, { id: "0", name: "设计中" });
+        } else if (this.currentInterface.state == "1") {
+          this.initialState.splice(0, 0, { id: "1", name: "未完成" });
+        } else if (this.currentInterface.state == "2") {
+          this.initialState.splice(0, 0, { id: "2", name: "已完成" });
+        } else {
+          this.initialState.splice(0, 0, { id: "3", name: "异常" });
+        }
+      }
+      this.debounceDataFormat();
+      this.funcType = "edit";
+    },
+    //点击删除按钮
+    del() {
+      if (this.currentInterfaceId != 0) {
+        AnMsgbox.confirm({ message: "是否确认删除？" })
+          .then((res) => {
+            let params = {
+              action: "delete_interface",
+              user_id: localStorage.getItem("user_id"),
+              delete_interface_id: this.currentInterfaceId,
+            };
+            post("/api/interface", params).then((res) => {
+              if (res.ret == 0) {
+                //删除当前模块中对应的节点
+                let tempIndex = this.currentInterfaceIndex;
+                //如果有下一个节点，跳转至下一个节点,没有的话，如有有上一个节点，就跳转至上一个节点,都没有就说明没有接口了
+                if (this.showNext) {
+                  this.nextInterface();
+                  this.currentInterfaceIndex--; //因为后面要在列表中删除一个节点
+                } else if (this.showPrev) {
+                  this.prevInterface();
+                } else {
+                  this.currentInterfaceId = 0;
+                  this.currrentInterfaceNode = null;
+                  this.currentInterface = null;
+                  this.currentInterfaceIndex = 0;
+                }
+                this.currentModule.childrenList.splice(tempIndex, 1);
+              } else {
+                AnMsgbox.msgbox({ message: res.msg });
+              }
+            });
+          })
+          .catch((err) => {});
+      }
+    },
+    //点击报错和完成按钮，报错type为wrong,完成为finish
+    updateState(type) {},
+    //点击历史记录
+    history() {},
+
+    //点击上一个
+    prevInterface() {
+      if (this.currentInterfaceIndex > 0) {
+        for (let i = this.currentInterfaceIndex - 1; i >= 0; i--) {
+          let child = this.currentModule.childrenList[i];
+          if (child.type == "2") {
+            this.currentInterfaceIndex = i;
+            this.currentInterfaceId = child.id;
+            this.currrentInterfaceNode = child;
+            this.getInterfaceInfo();
+            break;
+          }
+        }
+      }
+    },
+
+    //点击下一个
+    nextInterface() {
+      if (this.currentInterfaceIndex >= 0) {
+        for (
+          let i = this.currentInterfaceIndex + 1;
+          i < this.currentModule.childrenList.length;
+          i++
+        ) {
+          let child = this.currentModule.childrenList[i];
+          if (child.type == "2") {
+            this.currentInterfaceIndex = i;
+            this.currentInterfaceId = child.id;
+            this.currrentInterfaceNode = child;
+            this.getInterfaceInfo();
+            break;
+          }
+        }
+      }
     },
   },
 };
@@ -471,7 +1023,9 @@ export default {
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid #ccc;
+  padding-left: 10px;
 }
+
 .title .format-funcs {
   display: flex;
   align-items: center;
@@ -482,18 +1036,63 @@ export default {
 .title .save {
   margin: 0 10px;
 }
-
+.replace-div {
+  position: fixed;
+  right: 10px;
+  top: 95px;
+  width: 50%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: white;
+  border: 1px solid #ccc;
+}
+.replace-div > div {
+  margin-right: 20px;
+}
 .content .info {
   width: calc(100% - 20px);
   margin: 0 10px;
 }
 textarea {
   width: 100%;
-  height: calc(100vh - 95px);
+  height: calc(100vh - 100px);
   border: 1px solid #ccc;
   outline: none;
 }
 textarea:focus {
   border: 1px solid #ccc;
+}
+
+/* 查看接口相关样式 */
+.detail-div {
+  display: flex;
+  flex-direction: column;
+}
+.detail-div .title {
+  height: 35px;
+  line-height: 35px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ccc;
+  padding: 0 10px;
+}
+.detail-div .funcs {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  right: 10px;
+  top: 200px;
+}
+.detail-div .funcs > div {
+  margin-bottom: 10px;
+}
+.detail-div .title .buttons > div {
+  margin-left: 15px;
+}
+.detail-div .detail {
+  width: 100%;
+  height: calc(100vh - 100px);
 }
 </style>

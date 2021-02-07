@@ -174,23 +174,7 @@ export default {
     nodeClick(item, eventKey) {
       //只接受当前树子节点发送的事件
       if (this.eventKey == eventKey) {
-        let exist = false;
-        for (let i = 0; i < this.selected.length; i++) {
-          if (item.id == this.selected[i].id) {
-            exist = true;
-            this.deleteFromSelected(item, i);
-            break;
-          }
-        }
-        //如果是单选且设置为选择及确认
-        if (!this.multiSelect && this.selectAssert) {
-          this.pushToSelected(item);
-          this.assert();
-        } else {
-          if (!exist && !this.showSelectedTree) {
-            this.pushToSelected(item);
-          }
-        }
+        this.$emit("nodeClick", item);
       }
     },
 

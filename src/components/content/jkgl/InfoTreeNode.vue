@@ -1,5 +1,5 @@
 <template>
-  <div class="an-nav-tree-node" v-show="pData.show">
+  <div class="info-tree-node" v-show="pData.show">
     <li>
       <div>
         <!--点击展开子节点 -->
@@ -12,28 +12,22 @@
           <an-icon
             v-if="isFolder"
             :icon="isOpen ? 'el-icon-arrow-down' : 'el-icon-arrow-right'"
-            :size="18"
-          ></an-icon>
-          <an-icon
-            v-if="pData.state"
-            :size="12"
-            :icon="stateIcon"
-            :color="stateColor"
+            :size="14"
           ></an-icon>
         </div>
-        <div class="info" @click="nodeClick">
+        <div class="info">
           {{ pData.name }}
         </div>
       </div>
       <ul v-if="pData.childrenList" v-show="isOpen">
-        <an-nav-tree-node
+        <info-tree-node
           v-for="child in pData.childrenList"
           :pData="child"
           :key="child.id"
           :level="level + 1"
           :autoExpand="autoExpand"
           :eventKey="eventKey"
-        ></an-nav-tree-node>
+        ></info-tree-node>
       </ul>
     </li>
   </div>
@@ -41,9 +35,9 @@
 
 <script>
 import AnIcon from "components/common/basic/AnIcon";
-import AnNavTreeNode from "./AnNavTreeNode";
+import InfoTreeNode from "./InfoTreeNode";
 export default {
-  name: "AnNavTreeNode",
+  name: "InfoTreeNode",
   props: {
     level: {
       type: Number,
@@ -67,36 +61,13 @@ export default {
     };
   },
   components: {
-    AnNavTreeNode,
+    InfoTreeNode,
     AnIcon,
   },
   computed: {
     //是否返回
     isFolder() {
       return this.pData.childrenList && this.pData.childrenList.length > 0;
-    },
-    //最末级子节点展示的图标
-    stateIcon() {
-      if (this.pData.state == "3") {
-        return "el-icon-warning";
-      } else if (this.pData.state == "2") {
-        return "el-icon-success";
-      } else if (this.pData.state == "1") {
-        return "el-icon-remove";
-      } else {
-        return "el-icon-s-opportunity";
-      }
-    },
-    stateColor() {
-      if (this.pData.state == "3") {
-        return "orange";
-      } else if (this.pData.state == "2") {
-        return "green";
-      } else if (this.pData.state == "1") {
-        return "blue";
-      } else {
-        return "blue";
-      }
     },
   },
   created() {},
@@ -115,18 +86,19 @@ export default {
 </script>
 
 <style scoped>
-.an-nav-tree-node > li > div {
+.info-tree-node > li > div {
   width: 100%;
-  line-height: 35px;
+  line-height: 20px;
   display: flex;
   align-items: center;
 }
 .decorate {
   display: flex;
+  white-space: pre-wrap;
 }
 .left-indent {
   display: inline-flex;
-  width: 10px;
+  width: 18px;
 }
 
 .info {

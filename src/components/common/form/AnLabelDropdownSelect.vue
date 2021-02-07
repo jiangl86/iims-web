@@ -79,7 +79,7 @@ export default {
   methods: {
     //选中值发生变化时触发,value为目前的选中值
     change(value) {
-      console.log(value);
+      this.value = value;
       this.$emit("change", value);
     },
     //下拉框出现/隐藏时触发	,state出现则为 true，隐藏则为 false
