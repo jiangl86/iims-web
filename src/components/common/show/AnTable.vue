@@ -397,7 +397,7 @@ export default {
     },
     //页码切换
     pageChange(page) {
-      this.$emit("pageChagne", page);
+      this.$emit("pageChange", page);
     },
     //调整每页显示数量时，num为设置的每页数量
     sizeChange(pageSize) {

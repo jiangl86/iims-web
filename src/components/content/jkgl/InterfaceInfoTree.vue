@@ -48,7 +48,6 @@ export default {
   watch: {
     pData() {
       this.initData(this.pData);
-      console.log(this.pData);
     },
   },
   methods: {

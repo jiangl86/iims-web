@@ -12,6 +12,8 @@
       showPagination
       @funcClick="funcClick"
       @dblClick="dblClick"
+      @pageChange="pageChange"
+      @sizeChange="sizeChange"
     ></an-table>
 
     <div class="detail" v-show="showDetail">
@@ -27,7 +29,6 @@
           name="管理员"
           :initialValue="adminInitialValue"
           :pData="adminUsers"
-          @aa="aaa"
           ref="admin"
         ></an-label-popup-select>
         <an-label-popup-select
@@ -118,16 +119,6 @@ export default {
     this.initData();
   },
   methods: {
-    aaa() {
-      this.adminUsers.forEach((ele) => {
-        console.log(ele.selected);
-      });
-      console.log("aaa");
-      this.developerUsers.forEach((ele) => {
-        console.log(ele.selected);
-      });
-      //   console.log(this.);
-    },
     initData() {
       this.getUserList();
       this.getProjectList();
@@ -165,12 +156,15 @@ export default {
       let projectParams = {
         user_id: localStorage.getItem("user_id"),
         action: "list_project",
+        page_size: this.pageSize,
+        page_num: this.page,
       };
       post(this.url, projectParams)
         .then((res) => {
           console.log(res);
           if (res.ret == 0) {
             this.funcRight = res.funcRight;
+            this.totalNum = res.total_count;
             this.projects = res.retlist;
             this.initProject();
           }
@@ -179,7 +173,17 @@ export default {
           console.log(err);
         });
     },
+    //切换页面
+    pageChange(page) {
+      this.page = page;
+      this.getProjectList();
+    },
 
+    //变化每页数量
+    sizeChange(size) {
+      this.pageSize = size;
+      this.getProjectList();
+    },
     //根据返回的列表处理项目信息
     initProject() {
       for (let i = 0; i < this.projects.length; i++) {

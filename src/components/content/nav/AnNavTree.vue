@@ -93,7 +93,6 @@ export default {
     },
     initStyle() {
       if (this.height) {
-        console.log(this.height);
         let treeHeight = this.height;
         if (this.showSearch) {
           treeHeight -= 37;

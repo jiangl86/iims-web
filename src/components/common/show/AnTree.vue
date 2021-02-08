@@ -353,7 +353,6 @@ export default {
     this.searchNode = debounce(this.search);
   },
   mounted() {
-    console.log(this.eventKey);
     this.$bus.$on("nodeClick", (node, eventKey) => {
       this.nodeClick(node, eventKey);
     });

@@ -270,7 +270,6 @@ export default {
       }
       this.$refs.textarea.setValue(this.value);
       this.showSelect = false;
-      this.$emit("aa");
     },
 
     // 取消选择

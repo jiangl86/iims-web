@@ -41,7 +41,11 @@
         ></an-label-input>
         <div class="func">
           <an-button name="取消" @click.native="cancel"></an-button>
-          <an-button name="确定" @click.native="assert"></an-button>
+          <an-button
+            name="确定"
+            @click.native="assert"
+            v-if="funcRight && funcRight.editFlag && funcRight.editFlag == '1'"
+          ></an-button>
         </div>
       </div>
     </div>
@@ -113,9 +117,7 @@ export default {
       };
       post("/api/user", params)
         .then((data) => {
-          console.log(data);
           if (data.ret == 0) {
-            console.log(data);
             this.totalNum = data.total_count;
             this.users = data.retlist;
             this.initUsers();
@@ -129,7 +131,7 @@ export default {
             console.log(this.funcRight);
           } else {
             //异常处理
-            console.log(data);
+            AnMsgbox.msgbox({ message: res.msg });
           }
         })
         .catch((err) => {

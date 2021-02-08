@@ -17,8 +17,7 @@ const Home = () =>
 
 const routes = [{
         path: '/',
-        name: 'Home',
-        component: Home
+        redirect: '/home'
     },
     {
         path: '/login',
@@ -29,7 +28,7 @@ const routes = [{
         path: '/home',
         name: 'Home',
         component: Home,
-        redirect: '/home/xmgl',
+        redirect: '/home/jkgl',
         children: [
             //接口管理相关页面
             ...jkglRoutes,

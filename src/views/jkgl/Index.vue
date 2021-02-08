@@ -101,12 +101,14 @@
             @click.native="del"
           ></an-button>
           <an-button
+            key="bug"
             name="报错"
             v-if="showError"
             round
-            @click.native="updateState('wrong')"
+            @click.native="updateState('bug')"
           ></an-button>
           <an-button
+            key="finish"
             name="完成"
             v-if="showFinish"
             round
@@ -152,6 +154,43 @@
             :result="currentInterface.result"
           ></interface-info>
         </div>
+        <div
+          class="state-change"
+          v-if="currentInterfaceId != 0 && showStateChange"
+        >
+          <div class="info">
+            <label>详细描述</label>
+            <textarea
+              v-model="stateChangeDescriptionValue"
+              ref="stateChangeDescription"
+            ></textarea>
+            <div class="funcs">
+              <an-button
+                name="取消"
+                @click.native="cancelUpdataState"
+              ></an-button>
+              <an-button
+                name="确定"
+                @click.native="assertUpdateState"
+              ></an-button>
+            </div>
+          </div>
+        </div>
+        <div class="history-div" v-if="currentInterface != null && showHistory">
+          <div class="history-info">
+            <div class="title">历史记录</div>
+
+            <history
+              :pData="currentInterface.history_list"
+              class="historys"
+            ></history>
+            <an-button
+              name="关闭"
+              @click.native="showHistory = false"
+              class="close"
+            ></an-button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -163,6 +202,7 @@
       selectAssert
       :backTip="false"
       @assert="assertProject"
+      @cancel="showSelectProject = false"
     ></an-tree>
   </div>
 </template>
@@ -177,13 +217,11 @@ import AnCheckbox from "components/common/basic/AnCheckbox";
 import AnIcon from "components/common/basic/AnIcon";
 
 import InterfaceInfo from "./InterfaceInfo";
+import History from "./History";
 
 import AnMsgbox from "components/common/popup/AnMsgbox";
 import { post, put } from "network/request";
-import {
-  arrayToTreeOfModuleInterface,
-  addKeysToData,
-} from "common/array/arrayprocess";
+import { addKeysToData, twoArrayToTree } from "common/array/arrayprocess";
 import { debounce } from "common/other/debounce";
 import IconConstant from "common/constant/iconConstant";
 export default {
@@ -218,6 +256,7 @@ export default {
       initialState: [{ id: "1", name: "未完成" }], //接口初始状态
 
       tempInterfaceName: "", //用于临时保存接口名称，以便于前端直接替换接口名称数据
+      tempInterfaceState: "", //用于临时保存接口状态，以便于前端直接替换接口名称数据
 
       newInterfaceDetail: "", //最终输入的数据
       lastInterfaceDetail: "",
@@ -230,6 +269,12 @@ export default {
 
       showReplaceDiv: false, //是否展示数据替换窗口
       closeIcon: IconConstant.CloseIcon, //关闭图标
+
+      showStateChange: false, //是否展示状态变更页面
+      stateChangeDescriptionValue: "", //风险状态变更时，完成报错时填的详细信息
+      updateStateType: "", //变更状态类型,有两种bug,finish
+
+      showHistory: false, //显示历史记录
     };
   },
   components: {
@@ -241,6 +286,8 @@ export default {
     AnCheckbox,
     AnIcon,
     InterfaceInfo,
+    History,
+    AnButton,
   },
   computed: {
     showPrev() {
@@ -306,14 +353,22 @@ export default {
       return false;
     },
     showError() {
-      return this.currentInterface && this.currentInterface.state == "2"
-        ? true
-        : false;
+      if (this.currentInterface && this.currentInterface.state == "2") {
+        return true;
+      }
+      return false;
     },
     showFinish() {
-      return this.currentInterface && this.currentInterface.state != "2"
-        ? true
-        : false;
+      if (
+        this.currentFuncRight &&
+        this.currentFuncRight.addFlag &&
+        this.currentFuncRight.addFlag == "1" &&
+        this.currentInterface &&
+        this.currentInterface.state != "2"
+      ) {
+        return true;
+      }
+      return false;
     },
   },
   created() {
@@ -353,13 +408,9 @@ export default {
     initTreeData() {
       //先给interface加上Parent_id属性
       addKeysToData(this.interfaces, ["parent_id"], ["module_id"]);
-      //首先将modules和Interfaces组合成一个数组
-      let moduleAndInterfaces = [];
-      moduleAndInterfaces.push(...this.modules);
-      moduleAndInterfaces.push(...this.interfaces);
-      //转换成树结构
-      this.moduleInterfaceTreeData = arrayToTreeOfModuleInterface(
-        moduleAndInterfaces
+      this.moduleInterfaceTreeData = twoArrayToTree(
+        this.modules,
+        this.interfaces
       );
     },
     //获取所有可以查看的项目
@@ -765,6 +816,7 @@ export default {
       }
       data.module_id = this.currentModuleId;
       this.tempInterfaceName = data.key_name;
+      this.tempInterfaceState = data.key_state ? data.key_state : "1";
       if (this.funcType == "add") {
         let params = {
           action: "add_interface",
@@ -781,6 +833,7 @@ export default {
                 id: res.interface_id,
                 name: this.tempInterfaceName,
                 show: true,
+                state: this.tempInterfaceState,
                 type: "2",
                 module_id: this.currentModuleId,
                 parent_id: this.currentModuleId,
@@ -789,7 +842,11 @@ export default {
                 this.$set(this.currentModule, "childrenList", []);
                 this.$set(this.currentModule, "children", 0);
               }
-              this.currentModule.childrenList.push(interfaceNode);
+              this.currentModule.childrenList.splice(
+                this.currentInterfaceIndex,
+                0,
+                interfaceNode
+              );
               this.currentModule.children = this.currentModule.children + 1;
 
               //设置当前选中接口为最新添加的接口
@@ -857,6 +914,7 @@ export default {
               localStorage.removeItem("newInterfaceDetail");
               //修改对应数据节点内容
               this.currrentInterfaceNode.name = this.tempInterfaceName;
+              this.currrentInterfaceNode.state = this.tempInterfaceState;
               //查询当前接口信息用于展示
               this.getInterfaceInfo();
             } else {
@@ -869,12 +927,57 @@ export default {
       }
     },
 
-    //查看页面相关内容
+    //变更状态取消
+    cancelUpdataState() {
+      this.updateStateType = "";
+      this.showStateChange = false;
+    },
+
+    //变更状态完成，暂时只有报错和完成两种
+    assertUpdateState() {
+      let params = {
+        action: "update_state",
+        user_id: localStorage.getItem("user_id"),
+        interface_id: this.currentInterfaceId,
+      };
+      let data = {};
+      //报错时，描述为必填
+      if (this.updateStateType == "bug") {
+        if (this.stateChangeDescriptionValue == "") {
+          AnMsgbox.msgbox({ message: "请填写bug详细信息" });
+          return;
+        }
+        data.state = "3";
+        this.tempInterfaceState = "3";
+        data.description = this.stateChangeDescriptionValue;
+      } else {
+        data.state = "2";
+        this.tempInterfaceState = "2";
+        if (this.stateChangeDescriptionValue != "") {
+          data.description = this.stateChangeDescriptionValue;
+        }
+      }
+      params.data = data;
+      post("/api/interface", params)
+        .then((res) => {
+          if (res.ret == 0) {
+            AnMsgbox.msgbox({ message: "操作成功" });
+            this.getInterfaceInfo();
+            this.currrentInterfaceNode.state = this.tempInterfaceState;
+            this.showStateChange = false;
+            this.updateStateType = "";
+          } else {
+            AnMsgbox.msgbox({ message: res.msg });
+          }
+        })
+        .catch((err) => {});
+    },
 
     //点击新增按钮
     add() {
       this.funcType = "add";
       this.newInterfaceDetail = "";
+      this.initialState = [{ id: "1", name: "未完成" }];
       if (localStorage.getItem("newInterfaceDetail")) {
         this.newInterfaceDetail = localStorage.getItem("newInterfaceDetail");
       }
@@ -953,9 +1056,16 @@ export default {
       }
     },
     //点击报错和完成按钮，报错type为wrong,完成为finish
-    updateState(type) {},
+    updateState(type) {
+      if (this.currentInterfaceId != 0) {
+        this.updateStateType = type;
+        this.showStateChange = true;
+      }
+    },
     //点击历史记录
-    history() {},
+    history() {
+      this.showHistory = true;
+    },
 
     //点击上一个
     prevInterface() {
@@ -1050,7 +1160,7 @@ export default {
   width: calc(100% - 20px);
   margin: 0 10px;
 }
-textarea {
+.add-div .info textarea {
   width: 100%;
   height: calc(100vh - 100px);
   border: 1px solid #ccc;
@@ -1062,6 +1172,7 @@ textarea:focus {
 
 /* 查看接口相关样式 */
 .detail-div {
+  position: relative;
   display: flex;
   flex-direction: column;
   padding: 0 10px;
@@ -1074,11 +1185,11 @@ textarea:focus {
   align-items: center;
   border-bottom: 1px solid #ccc;
 }
-.detail-div .funcs {
+.detail-div > .funcs {
   display: flex;
   flex-direction: column;
   position: fixed;
-  right: 10px;
+  right: 30px;
   top: 200px;
 }
 .detail-div .funcs > div {
@@ -1090,6 +1201,84 @@ textarea:focus {
 .detail-div .detail {
   width: 100%;
   height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+
+.state-change {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.2);
+}
+.state-change .info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 600px;
+  height: 340px;
+  background-color: white;
+  border: 1px solid #ccc;
+}
+.state-change .info label,
+.state-change .info textarea {
+  margin: 10px 10px 0 10px;
+}
+.state-change .info textarea {
+  width: 575px;
+  height: 240px;
+  outline: none;
+  border: 1px solid #ccc;
+}
+.state-change .info > .funcs {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 40px;
+}
+.state-change .info > .funcs > div {
+  margin: 0 10px;
+}
+.history-div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.history-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 600px;
+
+  background-color: white;
+  border: 1px solid #ccc;
+}
+.history-info .title {
+  width: 100%;
+  text-align: center;
+  color: white;
+  background-color: var(--mainColor);
+}
+.history-info .historys {
+  width: 100%;
+
+  height: calc(100vh - 200px);
   overflow-y: auto;
 }
 </style>

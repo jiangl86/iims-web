@@ -11,7 +11,7 @@ export default {
   },
   components: {},
   created() {
-    login("15031231747", "R15031231747@")
+    login("jiangliu", "111111")
       .then((res) => {
         let data = res.data;
         if (data.ret == 0) {

@@ -7,13 +7,13 @@
 
       <div class="entrance-title">
         <span class="icons" @click="funcClick('jkgl')">
-          <img src="../../assets/images/gzxx.png" />接口
+          <img src="../../assets/images/gzxx.png" />接口管理
         </span>
         <span class="icons" @click="funcClick('xmgl')">
-          <img src="../../assets/images/sjkb.png" />项目
+          <img src="../../assets/images/sjkb.png" />项目管理
         </span>
         <span class="icons" @click="funcClick('yhgl')">
-          <img src="../../assets/images/aqyy.png" />用户
+          <img src="../../assets/images/aqyy.png" />用户管理
         </span>
       </div>
 
@@ -25,12 +25,12 @@
               width="40"
               onclick=""
               src="../../assets/images/avatar.png" /></span
-          ><span>东城</span>
+          ><span>修改密码</span>
         </div>
         <img
           class="logout_btn"
           title="退出"
-          onclick="logout()"
+          @click="logout"
           width="20"
           height="20"
           src="../../assets/images/logout.png"
@@ -90,6 +90,7 @@ export default {
     },
     //点击用户，弹出修改密码框
     changePass() {
+      console.log("ass");
       this.$refs.oldPass.setValue("");
       this.$refs.newPass.setValue("");
       this.$refs.confirmPass.setValue("");
@@ -136,6 +137,12 @@ export default {
           AnMsgbox.msgbox({ message: "修改失败，请稍后再试" });
         });
     },
+
+    logout() {
+      localStorage.removeItem("user_id");
+      localStorage.removeItem("token");
+      this.$router.replace({ name: "Login" });
+    },
   },
 };
 </script>
@@ -157,27 +164,13 @@ export default {
   font-size: var(--font-size-bg);
 }
 .logo {
+  width: 30%;
   display: flex;
   align-items: center;
-}
-.logo img {
-  width: 45px;
-  padding: 7px;
-}
-.appDownload {
-  margin-right: 30px;
 }
 
-.czsm_down {
-  display: none;
-}
-.username {
-  display: flex;
-  align-items: center;
-  margin: 0px 30px;
-}
-.username img {
-  margin-top: 15px;
+.entrance-title {
+  width: 45%;
 }
 .entrance-title img {
   float: left;
@@ -197,28 +190,30 @@ export default {
 .entrance-title img {
   padding-top: 5px;
 }
+.tools {
+  flex: 1;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+  justify-content: flex-end;
+}
+.username {
+  display: flex;
+  align-items: center;
+  margin: 0px 30px;
+}
+.username img {
+  margin-top: 15px;
+}
+
 .show-area {
   height: calc(100vh - 60px);
   width: 100%;
   // overflow-y: scroll;
   margin-top: 60px;
 }
-.czsm {
-  width: 66px;
-  height: 25px;
-  background: #3a94e4;
-  border: 1px solid #6aaff1;
-  border-radius: 4px;
-  line-height: 25px;
-  text-align: center;
-  cursor: pointer;
-}
-.tools {
-  color: #fff;
-  display: flex;
-  align-items: center;
-  margin-right: 2%;
-}
+
 .tools a {
   color: #fff;
 }
