@@ -19,6 +19,7 @@
       @change="change"
       @input="input"
       @clear="clear"
+      ref="input"
     ></el-input>
   </div>
 </template>
@@ -98,6 +99,14 @@ export default {
     //在点击由 clearable 属性生成的清空按钮时触发
     clear() {
       this.$emit("clear");
+    },
+    //使其获得焦点
+    setFocus() {
+      this.$refs.input.focus();
+    },
+    //使其失去焦点
+    setBlur() {
+      this.$refs.input.blur();
     },
   },
 };

@@ -16,6 +16,7 @@
           <div class="module">
             <label>所属模块：</label> {{ currentModuleName }}
           </div>
+          <div @click="showExample = true">示例</div>
           <div class="state">
             <an-label-dropdown-select
               name="接口状态"
@@ -194,6 +195,33 @@
       </div>
     </div>
 
+    <div class="example" v-show="showExample">
+      <div class="info">
+        <div class="content">
+          ##name 代表名称，<br />必填 ##desc 代表描述，非必填 <br />
+          ##design 代表设计，非必填 <br />##address 代表地址，非必填
+          <br />##params 代表请求参数，非必填 <br />##result
+          代表返回结果，非必填
+          <br />
+          示例:<br />
+          ##name 用户请求接口<br />
+          ##desc查询系统内用户信息（仅系统管理员可查看） <br />
+          ##design 代表设计，非必填 <br />##address PUT /api/user HTTP/1.1
+          <br />##params http 请求消息 body 携带添加客户的信息
+          消息体的格式是json，如下示例： { "action":"list_user ", ‘user_id’:32,
+          Name:‘张三’,//姓名，非必填， Phone:‘13232’，//电话，非必填
+          Delete_state:0,//删除状态，0未删除，1已删除 ‘page_size’:30
+          //每页数量，非必填项，不传此参数查满足条件的所有企业 ‘page_num’:5
+          //页码，非必填项 } <br />##result http 响应消息 body 中，
+          数据以json格式存储， 如果获取信息成功，返回如下 { "ret": 0,
+          “msg”:“提示信息”, ‘user_id’:1,//用户ID ‘token’:‘sdsxdsdsdsdjsdssdsd’
+          //唯一标识 } ret 为 0
+          表示获取成功，ret为1表示失败,此时可以展示提示信息。
+        </div>
+        <an-button name="关闭" @click.native="showExample = false"></an-button>
+      </div>
+    </div>
+
     <an-tree
       v-show="showSelectProject"
       name="请选择项目"
@@ -275,6 +303,8 @@ export default {
       updateStateType: "", //变更状态类型,有两种bug,finish
 
       showHistory: false, //显示历史记录
+
+      showExample: false, //显示案例
     };
   },
   components: {
@@ -1246,7 +1276,8 @@ textarea:focus {
 .state-change .info > .funcs > div {
   margin: 0 10px;
 }
-.history-div {
+.history-div,
+.example {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1259,7 +1290,8 @@ textarea:focus {
   background: rgba(0, 0, 0, 0.2);
 }
 
-.history-info {
+.history-info,
+.example .info {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -1275,7 +1307,8 @@ textarea:focus {
   color: white;
   background-color: var(--mainColor);
 }
-.history-info .historys {
+.history-info .historys,
+.example .info .content {
   width: 100%;
 
   height: calc(100vh - 200px);

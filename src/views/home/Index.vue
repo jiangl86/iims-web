@@ -12,7 +12,7 @@
         <span class="icons" @click="funcClick('xmgl')">
           <img src="../../assets/images/sjkb.png" />项目管理
         </span>
-        <span class="icons" @click="funcClick('yhgl')">
+        <span class="icons" @click="funcClick('yhgl')" v-if="userType == '0'">
           <img src="../../assets/images/aqyy.png" />用户管理
         </span>
       </div>
@@ -65,20 +65,35 @@ import AnButton from "components/common/basic/AnButton";
 
 import AnMsgbox from "components/common/popup/AnMsgbox";
 import { post, put } from "network/request";
+import { encrypt } from "common/other/encrypt";
 export default {
   name: "Index",
   data() {
     return {
       logoTitle: "信息化部接口管理系统",
       showPassReset: false,
+      userType: "1", //普通用户
     };
   },
   components: {
     AnLabelInput,
     AnButton,
   },
-  created() {},
+  created() {
+    this.initRight();
+  },
   methods: {
+    initRight() {
+      let params = {
+        action: "get_self_info",
+        user_id: localStorage.getItem("user_id"),
+      };
+      put("/api/user", params)
+        .then((res) => {
+          this.userType = res.type;
+        })
+        .catch((err) => {});
+    },
     funcClick(code) {
       if (code == "jkgl") {
         this.$router.replace({ name: "JkglIndex" });
@@ -126,6 +141,8 @@ export default {
         user_id: localStorage.getItem("user_id"),
       };
       //需要传输加密后的数据
+      oldPass = encrypt(oldPass);
+      newPass = encrypt(newPass);
       let data = { old_password: oldPass, new_password: newPass };
       params.data = data;
       post("/api/user", params)

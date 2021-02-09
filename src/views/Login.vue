@@ -16,6 +16,7 @@
         type="password"
         class="password"
         ref="password"
+        @keyup.enter.native="loginClick"
       ></an-input>
       <an-button
         name="登录"
@@ -32,6 +33,7 @@
 import AnInput from "components/common/basic/AnInput";
 import AnButton from "components/common/basic/AnButton";
 import { login } from "network/request";
+import { encrypt } from "common/other/encrypt";
 
 import AnMsgbox from "components/common/popup/AnMsgbox";
 export default {
@@ -46,22 +48,21 @@ export default {
   created() {},
   methods: {
     loginClick() {
+      this.$refs.password.setBlur();
       let name = this.$refs.username.value;
       let password = this.$refs.password.value;
       if (!name || name == "") {
-        AnMsgbox.msgbox({ message: "请输入用户名" });
+        AnMsgbox.msgbox({ message: "请输入账号或手机号" });
+        this.$refs.username.setFocus();
         return;
       }
       if (!password || password == "") {
         AnMsgbox.msgbox({ message: "请输入密码" });
+        this.$refs.username.setFocus();
         return;
       }
       name = name.trim();
-      let sha256 = require("js-sha256");
-      var hash = sha256.create();
-      hash.update(password);
-      password = hash.hex();
-      console.log(password);
+      password = encrypt(password);
       login(name, password)
         .then((res) => {
           let data = res.data;
