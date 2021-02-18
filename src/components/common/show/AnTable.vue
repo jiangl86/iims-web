@@ -188,7 +188,6 @@ export default {
   watch: {
     funcRight: function () {
       this.funcButtons.splice(0, this.funcButtons.length);
-      console.log(this.funcButtons);
       this.initFuncButtons();
     },
     //数据变化时需要更新各行的选中状态，否则表头的复选框无法判断是否该自动选中
@@ -367,7 +366,6 @@ export default {
     initStyle() {
       //初始化表头颜色
       if (this.labelBgColor) {
-        console.log(this.labelBgColor);
         this.$refs.thead.style.backgroundColor = this.labelBgColor;
       }
       //初始化更多按钮位置

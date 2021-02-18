@@ -161,7 +161,6 @@ export default {
       };
       post(this.url, projectParams)
         .then((res) => {
-          console.log(res);
           if (res.ret == 0) {
             this.funcRight = res.funcRight;
             this.totalNum = res.total_count;
@@ -170,7 +169,7 @@ export default {
           }
         })
         .catch((err) => {
-          console.log(err);
+          // console.log(err);
         });
     },
     //切换页面

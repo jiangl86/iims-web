@@ -120,7 +120,6 @@ export default {
       };
       put(this.url, params)
         .then((res) => {
-          console.log(res);
           if (res.ret == 0) {
             this.modules = res.retlist;
             this.initModules();
@@ -129,7 +128,7 @@ export default {
           }
         })
         .catch((err) => {
-          console.log(err);
+          // console.log(err);
         });
     },
 
@@ -237,7 +236,6 @@ export default {
       }
       if (this.delete_ids != "") {
         this.delete_ids = this.delete_ids.substring(1);
-        console.log(this.delete_ids);
         let params = {
           action: "delete_module",
           user_id: localStorage.getItem("user_id"),
@@ -364,7 +362,6 @@ export default {
                   this.$set(selected, "children", 0);
                   this.$set(selected, "childrenList", []);
                 }
-                console.log(selected);
                 selected.childrenList.push(item);
                 this.$set(selected, "children", selected.children + 1);
               }
@@ -375,14 +372,13 @@ export default {
           })
           .catch((err) => {
             // AnMsgbox.msgbox({ message: "添加失败，请稍后再试" });
-            console.log(err);
+            // console.log(err);
           });
       } else if (this.operationType == "edit") {
         params.action = "update_module";
         params.module_id = this.chooseModuleId;
         post(this.url, params)
           .then((res) => {
-            console.log(res);
             if (res.ret == 0) {
               //直接前端更新页面数据，不通过后台请求，因为树的位置不好确定，且这个模块同时编辑可能性较小
               let selected = this.$refs.treeTable.selected[0];

@@ -93,7 +93,6 @@ export default {
     //用户确认选定的值时触发
     change(value) {
       this.value = value;
-      console.log(this.value);
       this.$emit("change", value);
     },
     //当 input 失去焦点时触发

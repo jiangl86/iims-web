@@ -18,7 +18,7 @@ instance1.interceptors.request.use(url => {
     loadingInstance = Loading.service({ text: '正在努力加载中' }); //加载数据，如果部分页面请求不需要加载，在此做判断
     return url;
 }, err => {
-    console.log(err);
+    // console.log(err);
 })
 
 //响应拦截
@@ -37,7 +37,7 @@ instance1.interceptors.response.use(res => {
 
 }, err => {
     loadingInstance.close();
-    console.log(err);
+    // console.log(err);
 })
 
 

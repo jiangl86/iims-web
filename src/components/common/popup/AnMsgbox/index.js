@@ -7,7 +7,6 @@ export default {
     },
     alert({ message, title, options }) {
         if (title) {
-            console.log('aa');
             MessageBox.alert(message, title, options)
         } else {
             MessageBox.alert(message, options)

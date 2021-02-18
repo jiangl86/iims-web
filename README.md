@@ -1,4 +1,4 @@
-# smis
+# iims
 
 ## Project setup
 ```

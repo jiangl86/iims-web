@@ -134,7 +134,6 @@ export default {
     initStyle() {
       //初始化表头颜色
       if (this.labelBgColor) {
-        console.log(this.labelBgColor);
         this.$refs.thead.style.backgroundColor = this.labelBgColor;
       }
     },

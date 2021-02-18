@@ -495,7 +495,7 @@ export default {
           }
         })
         .catch((err) => {
-          console.log(err);
+          // console.log(err);
           AnMsgbox.msgbox({ message: "服务器错误，请稍后再试" });
         });
     },
@@ -889,7 +889,7 @@ export default {
             }
           })
           .catch((err) => {
-            console.log(err);
+            // console.log(err);
           });
       } else if (this.funcType == "edit") {
         //修改信息

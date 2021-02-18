@@ -128,14 +128,13 @@ export default {
               this.showFuncs = false;
               this.funcRight = null;
             }
-            console.log(this.funcRight);
           } else {
             //异常处理
             AnMsgbox.msgbox({ message: res.msg });
           }
         })
         .catch((err) => {
-          console.log(err);
+          // console.log(err);
         });
     },
 
@@ -145,7 +144,6 @@ export default {
         this.$set(ele, "typeName", ele.type == "0" ? "系统管理员" : "普通用户");
         this.$set(ele, "stateName", ele.state == "1" ? "正常" : "未激活");
       });
-      console.log(this.users);
     },
 
     //切换页面
@@ -172,7 +170,6 @@ export default {
     },
     //点击相关功能
     funcClick(code, selected) {
-      console.log(code);
       if (code == "add") {
         this.showDetail = true;
         this.chooseUserId = 0;
@@ -187,7 +184,6 @@ export default {
         this.$refs.createTime.setValue(user.create_time);
         this.showDetail = true;
       } else if (code == "del") {
-        console.log("del");
         //首先判断自己的账户是否在选中列表中，如果是，提醒，不能删除
         if (
           selected.findIndex(
