@@ -49,11 +49,9 @@ const router = new VueRouter({
 
 router.beforeEach((to, from, next) => {
     //未登录直接跳转至登录页面
-    // if (store.state.userId == 0 && to.path.indexOf('login') == -1) {
-    //     router.push({ name: 'Login' })
-    // }
-    console.log(to);
-    console.log(router.currentRoute.path);
+    if (localStorage.getItem('user_id') == null && to.path.indexOf('login') == -1) {
+        router.push({ name: 'Login' })
+    }
     next()
 })
 export default router
