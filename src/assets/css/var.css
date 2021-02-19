@@ -17,4 +17,7 @@
     --labelWidth: 100px;
     /* 普通li高度 */
     --liHeight: 40px;
+    /* 接口内容字体大小 */
+    --interfaceContentFontSize: 14px;
+    --interfaceContentLineHeight: 20px;
 }

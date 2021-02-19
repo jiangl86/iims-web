@@ -10,6 +10,9 @@
       <div v-if="name" class="title">
         {{ name }}
         <span class="change-func" @click="changeFuncClick">切换</span>
+        <span class="toggle-func" @click="toggleFuncClick">{{
+          toggleName
+        }}</span>
       </div>
       <ul class="tree-area" ref="treeArea">
         <an-nav-tree-node
@@ -18,6 +21,7 @@
           :key="item.id"
           :autoExpand="autoExpand"
           :eventKey="eventKey"
+          ref="firstLevelNode"
         ></an-nav-tree-node>
       </ul>
     </div>
@@ -55,6 +59,7 @@ export default {
   },
   data() {
     return {
+      toggleName: "收起",
       debounceSearch: null,
       eventKey: Math.random() + "" + Math.random(), //每一个树改数据唯一，非常重要的参数
     };
@@ -214,6 +219,13 @@ export default {
     changeFuncClick() {
       this.$emit("changeFuncClick");
     },
+    toggleFuncClick() {
+      this.toggleName = this.toggleName == "收起" ? "展开" : "收起";
+      let openState = this.toggleName == "收起" ? true : false;
+      for (let i = 0; i < this.$refs.firstLevelNode.length; i++) {
+        this.$refs.firstLevelNode[i].isOpen = openState;
+      }
+    },
   },
 };
 </script>
@@ -241,6 +253,11 @@ export default {
   font-weight: 600;
 }
 .change-func {
+  position: absolute;
+  right: 60px;
+  color: var(--mainColor);
+}
+.toggle-func {
   position: absolute;
   right: 18px;
   color: var(--mainColor);

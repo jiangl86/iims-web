@@ -9,7 +9,7 @@
             :icon="isOpen ? 'el-icon-arrow-down' : 'el-icon-arrow-right'"
             :size="14"
           ></an-icon>
-          <span v-else class="left-indent"></span>
+          <span v-if="!isFolder && !isLast" class="left-indent"></span>
           <span
             v-for="index in level - 1"
             :key="pData.id + index"
@@ -22,8 +22,9 @@
       </div>
       <ul v-if="pData.childrenList" v-show="isOpen">
         <info-tree-node
-          v-for="child in pData.childrenList"
+          v-for="(child, childIndex) in pData.childrenList"
           :pData="child"
+          :isLast="childIndex == pData.childrenList.length - 1"
           :key="child.id"
           :level="level + 1"
           :autoExpand="autoExpand"
@@ -54,6 +55,10 @@ export default {
     eventKey: {
       type: String, //因为通过事件通过总线发送，当一个页面有多个树时，为了准确由父级树确定事件由子节点产生
       required: true,
+    },
+    isLast: {
+      type: Boolean,
+      default: false, //是否最后一个
     },
   },
   data() {
@@ -89,7 +94,7 @@ export default {
 <style scoped>
 .info-tree-node > li > div {
   width: 100%;
-  line-height: 20px;
+  line-height: var(--interfaceContentLineHeight);
   display: flex;
   align-items: center;
 }

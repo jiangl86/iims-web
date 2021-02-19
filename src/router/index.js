@@ -52,6 +52,8 @@ router.beforeEach((to, from, next) => {
     // if (store.state.userId == 0 && to.path.indexOf('login') == -1) {
     //     router.push({ name: 'Login' })
     // }
+    console.log(to);
+    console.log(router.currentRoute.path);
     next()
 })
 export default router

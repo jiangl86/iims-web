@@ -122,14 +122,14 @@ export default {
   justify-content: flex-start;
   align-items: flex-start;
   text-align: left;
+  font-size: var(--interfaceContentFontSize);
+  line-height: var(--interfaceContentFontSize);
 }
 .name {
-  font-size: 14px;
   font-weight: 600;
   margin-top: 10px;
 }
 .description {
-  font-size: 14px;
   margin-top: 15px;
 }
 .address {

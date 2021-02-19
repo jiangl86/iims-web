@@ -115,6 +115,18 @@
             round
             @click.native="updateState('finish')"
           ></an-button>
+          <an-button
+            key="zoomout"
+            name="放大"
+            round
+            @click.native="zoom('big')"
+          ></an-button>
+          <an-button
+            key="zoomin"
+            name="缩小"
+            round
+            @click.native="zoom('small')"
+          ></an-button>
         </div>
 
         <div class="title">
@@ -195,7 +207,6 @@
       </div>
     </div>
 
-    <!-- 示例展示内容，可抽离，较简单，未处理 -->
     <div class="example" v-show="showExample">
       <div class="info">
         <div class="content">
@@ -204,15 +215,13 @@
           <br />##params 代表请求参数，非必填 <br />##result
           代表返回结果，非必填
           <br />
-          <br />
-          示例:<br /><br />
+          示例:<br />
           ##name 用户请求接口<br />
           ##desc查询系统内用户信息（仅系统管理员可查看） <br />
-          ##design 是多少了几声劳动竞赛了及时了解来解答蓝色基调 <br />##address
-          PUT /api/user HTTP/1.1 <br />##params http 请求消息 body
-          携带添加客户的信息 消息体的格式是json，如下示例： {
-          "action":"list_user ", ‘user_id’:32, Name:‘张三’,//姓名，非必填，
-          Phone:‘13232’，//电话，非必填
+          ##design 代表设计，非必填 <br />##address PUT /api/user HTTP/1.1
+          <br />##params http 请求消息 body 携带添加客户的信息
+          消息体的格式是json，如下示例： { "action":"list_user ", ‘user_id’:32,
+          Name:‘张三’,//姓名，非必填， Phone:‘13232’，//电话，非必填
           Delete_state:0,//删除状态，0未删除，1已删除 ‘page_size’:30
           //每页数量，非必填项，不传此参数查满足条件的所有企业 ‘page_num’:5
           //页码，非必填项 } <br />##result http 响应消息 body 中，
@@ -254,6 +263,7 @@ import AnMsgbox from "components/common/popup/AnMsgbox";
 import { post, put } from "network/request";
 import { addKeysToData, twoArrayToTree } from "common/array/arrayprocess";
 import { debounce } from "common/other/debounce";
+import { transPxtoNumber } from "common/css/cssSet";
 import IconConstant from "common/constant/iconConstant";
 export default {
   name: "JkglIndex",
@@ -955,7 +965,7 @@ export default {
             }
           })
           .catch((err) => {
-            console.log(err);
+            // console.log(err);
           });
       }
     },
@@ -1135,6 +1145,28 @@ export default {
         }
       }
     },
+    //点击放大、缩小
+    zoom(type) {
+      const styles = getComputedStyle(document.querySelector(":root"));
+      let interfaceFontSize = transPxtoNumber(
+        String(styles.getPropertyValue("--interfaceContentFontSize")).trim()
+      );
+      //设置字体大小
+      interfaceFontSize =
+        type == "big" ? interfaceFontSize + 2 : interfaceFontSize - 2;
+      interfaceFontSize = interfaceFontSize < 10 ? 10 : interfaceFontSize;
+      interfaceFontSize = interfaceFontSize > 30 ? 30 : interfaceFontSize;
+      //设置行高
+      let interfaceLineHeight = Math.ceil(interfaceFontSize * 1.414);
+      document.documentElement.style.setProperty(
+        "--interfaceContentFontSize",
+        interfaceFontSize + "px"
+      );
+      document.documentElement.style.setProperty(
+        "--interfaceContentLineHeight",
+        interfaceLineHeight + "px"
+      );
+    },
   },
 };
 </script>
@@ -1224,6 +1256,7 @@ textarea:focus {
   position: fixed;
   right: 30px;
   top: 200px;
+  z-index: 1;
 }
 .detail-div .funcs > div {
   margin-bottom: 10px;
@@ -1313,11 +1346,8 @@ textarea:focus {
 .history-info .historys,
 .example .info .content {
   width: 100%;
+
   height: calc(100vh - 200px);
   overflow-y: auto;
-}
-.example .info .content {
-  padding: 10px;
-  text-align: left;
 }
 </style>

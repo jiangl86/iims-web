@@ -14,6 +14,7 @@
             :icon="isOpen ? 'el-icon-arrow-down' : 'el-icon-arrow-right'"
             :size="18"
           ></an-icon>
+          <span v-else style="width: 18px"></span>
           <an-icon
             v-if="pData.state"
             :size="12"

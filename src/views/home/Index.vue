@@ -105,7 +105,6 @@ export default {
     },
     //点击用户，弹出修改密码框
     changePass() {
-      console.log("ass");
       this.$refs.oldPass.setValue("");
       this.$refs.newPass.setValue("");
       this.$refs.confirmPass.setValue("");

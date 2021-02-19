@@ -161,8 +161,10 @@ export default {
       };
       post(this.url, projectParams)
         .then((res) => {
-          if (res.ret == 0) {
+          if (res.funcRight) {
             this.funcRight = res.funcRight;
+          }
+          if (res.ret == 0) {
             this.totalNum = res.total_count;
             this.projects = res.retlist;
             this.initProject();

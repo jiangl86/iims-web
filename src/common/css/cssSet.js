@@ -13,6 +13,6 @@ export function zoomSystemFontSize(scale) {
     document.documentElement.style.setProperty("--font-size-xl", xl * scale + "px");
 }
 
-function transPxtoNumber(value) {
+export function transPxtoNumber(value) {
     return Number(value.substring(0, value.indexOf('px')))
 }
