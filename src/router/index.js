@@ -4,6 +4,7 @@ import store from 'store'
 import xmglRoutes from './xmglRoutes'
 import yhglRoutes from './yhglRoutes';
 import jkglRoutes from './jkglRoutes';
+import tjfxRoutes from './tjfxRoutes'
 
 
 Vue.use(VueRouter)
@@ -36,6 +37,8 @@ const routes = [{
             ...xmglRoutes,
             //用户管理相关页面
             ...yhglRoutes,
+            //统计分析相关页面
+            ...tjfxRoutes,
         ],
     },
 

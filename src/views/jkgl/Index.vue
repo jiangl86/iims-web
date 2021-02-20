@@ -595,6 +595,7 @@ export default {
           .then((res) => {
             this.currentInterface = res.data;
             this.funcType = "review";
+            console.log(this.currentInterface);
           })
           .catch((err) => {
             AnMsgbox.msgbox({ message: "暂时无法获取，请稍后再试" });
@@ -916,34 +917,45 @@ export default {
           data.key_design != this.currentInterface.design
         ) {
           modData.key_design = data.key_design;
+        } else if (this.currentInterface.design && !data.key_design) {
+          modData.key_design = ""; //如果之前有数据，但是修改后删掉后，清空数据库对应内容
         }
         if (
           data.key_description &&
           data.key_description != this.currentInterface.description
         ) {
           modData.key_description = data.key_description;
+        } else if (this.currentInterface.description && !data.key_description) {
+          modData.key_description = ""; //如果之前有数据，但是修改后删掉后，清空数据库对应内容
         }
         if (
           data.key_address &&
           data.key_address != this.currentInterface.address
         ) {
           modData.key_address = data.key_address;
+        } else if (this.currentInterface.address && !data.key_address) {
+          modData.key_address = ""; //如果之前有数据，但是修改后删掉后，清空数据库对应内容
         }
         if (
           data.key_params &&
           data.key_params != this.currentInterface.params
         ) {
           modData.key_params = data.key_params;
+        } else if (this.currentInterface.params && !data.key_params) {
+          modData.key_params = ""; //如果之前有数据，但是修改后删掉后，清空数据库对应内容
         }
         if (
           data.key_result &&
           data.key_result != this.currentInterface.result
         ) {
           modData.key_result = data.key_result;
+        } else if (this.currentInterface.result && !data.key_result) {
+          modData.key_result = ""; //如果之前有数据，但是修改后删掉后，清空数据库对应内容
         }
         if (data.key_state && data.key_state != this.currentInterface.state) {
           modData.key_state = data.key_state;
         }
+
         let params = {
           action: "update_interface",
           user_id: localStorage.getItem("user_id"),

@@ -12,6 +12,9 @@
         <span class="icons" @click="funcClick('xmgl')">
           <img src="../../assets/images/sjkb.png" />项目管理
         </span>
+        <span class="icons" @click="funcClick('tjfx')">
+          <img src="../../assets/images/sjkb.png" />统计分析
+        </span>
         <span class="icons" @click="funcClick('yhgl')" v-if="userType == '0'">
           <img src="../../assets/images/aqyy.png" />用户管理
         </span>
@@ -101,6 +104,8 @@ export default {
         this.$router.replace({ name: "XmglList" });
       } else if (code == "yhgl") {
         this.$router.replace({ name: "YhglList" });
+      } else if (code == "tjfx") {
+        this.$router.replace({ name: "TjfxIndex" });
       }
     },
     //点击用户，弹出修改密码框
