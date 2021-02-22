@@ -15,9 +15,23 @@
         <span class="icons" @click="funcClick('tjfx')">
           <img src="../../assets/images/sjkb.png" />统计分析
         </span>
-        <span class="icons" @click="funcClick('yhgl')" v-if="userType == '0'">
-          <img src="../../assets/images/aqyy.png" />用户管理
-        </span>
+
+        <div
+          class="icons system-manage"
+          v-if="userType == '0'"
+          @mouseenter="showSystemChild = true"
+          @mouseleave="showSystemChild = false"
+        >
+          系统管理
+          <div class="child-list" v-show="showSystemChild">
+            <span @click="funcClick('yhgl')" v-if="userType == '0'"
+              >用户管理
+            </span>
+            <span @click="funcClick('rzgl')" v-if="userType == '0'"
+              >日志管理
+            </span>
+          </div>
+        </div>
       </div>
 
       <div class="tools">
@@ -76,6 +90,7 @@ export default {
       logoTitle: "信息化部接口管理系统",
       showPassReset: false,
       userType: "1", //普通用户
+      showSystemChild: false, //显示系统管理子功能
     };
   },
   components: {
@@ -103,9 +118,13 @@ export default {
       } else if (code == "xmgl") {
         this.$router.replace({ name: "XmglList" });
       } else if (code == "yhgl") {
+        this.showSystemChild = false;
         this.$router.replace({ name: "YhglList" });
       } else if (code == "tjfx") {
         this.$router.replace({ name: "TjfxIndex" });
+      } else if (code == "rzgl") {
+        this.showSystemChild = false;
+        this.$router.replace({ name: "RzglList" });
       }
     },
     //点击用户，弹出修改密码框
@@ -197,7 +216,8 @@ export default {
   float: left;
   margin-top: 13px;
 }
-.entrance-title span {
+.entrance-title > span,
+.system-manage {
   display: block;
   margin-right: 60px;
 }
@@ -205,7 +225,7 @@ export default {
   display: flex;
   color: #fff;
   cursor: pointer;
-  align-items: center;
+  // align-items: center;
   line-height: 60px;
 }
 .entrance-title img {
@@ -256,7 +276,7 @@ export default {
   .logo_title {
     font-size: var(--font-size-lg);
   }
-  .entrance-title span {
+  .entrance-title > span {
     margin-right: 10px;
   }
 }
@@ -296,5 +316,20 @@ export default {
 .info .func {
   display: flex;
   justify-content: center;
+}
+// 系统管理子功能列表
+.system-manage {
+  width: 80px;
+  box-sizing: border-box;
+}
+.child-list {
+  width: 100%;
+  background-color: var(--mainColor);
+  display: flex;
+  flex-direction: column;
+}
+.child-list > span {
+  line-height: 40px;
+  color: white;
 }
 </style>

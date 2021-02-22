@@ -90,6 +90,7 @@
             :key="item.id + keyName"
             :class="{ hide: isHide(index) }"
             @mouseenter.stop="mouseenter($event, item[keyName])"
+            @click="click(item, index)"
           >
             {{ item[keyName] }}
           </td>
@@ -142,7 +143,6 @@ export default {
     },
     total: {
       type: Number, //数据总条数
-      required: true,
     },
     initialPage: {
       type: Number, //初始页面
@@ -392,6 +392,10 @@ export default {
     //双击事件
     dblClick(item) {
       this.$emit("dblClick", item);
+    },
+    //表格点击事件
+    click(item, index) {
+      this.$emit("tdClick", item, index);
     },
     //页码切换
     pageChange(page) {

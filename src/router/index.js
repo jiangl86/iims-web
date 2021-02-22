@@ -2,7 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import store from 'store'
 import xmglRoutes from './xmglRoutes'
-import yhglRoutes from './yhglRoutes';
+import xtglRoutes from './xtglRoutes';
 import jkglRoutes from './jkglRoutes';
 import tjfxRoutes from './tjfxRoutes'
 
@@ -35,8 +35,8 @@ const routes = [{
             ...jkglRoutes,
             //项目管理相关页面
             ...xmglRoutes,
-            //用户管理相关页面
-            ...yhglRoutes,
+            //系统管理相关页面
+            ...xtglRoutes,
             //统计分析相关页面
             ...tjfxRoutes,
         ],

@@ -7,6 +7,7 @@
       :start-placeholder="startPlaceholder"
       :end-placeholder="endPlaceholder"
       :format="format"
+      :value-format="valueFormat"
       :clearable="clearable"
       @change="change"
       @blur="blur"
@@ -19,6 +20,9 @@
 export default {
   name: "AnDatePicker",
   props: {
+    initialValue: {
+      type: Array,
+    },
     readonly: {
       //完全只读
       type: Boolean,
@@ -69,6 +73,11 @@ export default {
       //显示在输入框中的格式
       type: String,
     },
+    valueFormat: {
+      //value格式
+      type: String,
+      default: "yyyy-MM-dd",
+    },
     align: {
       //对齐方式
       type: String,
@@ -83,7 +92,25 @@ export default {
       value: "",
     };
   },
+  watch: {
+    initialValue() {
+      this.initData();
+    },
+  },
+  created() {
+    this.initData();
+  },
   methods: {
+    initData() {
+      if (
+        this.type == "daterange" ||
+        this.type == "datetimerange" ||
+        this.type == "monthrange"
+      ) {
+        this.value = this.initialValue;
+      }
+      this.change(this.value);
+    },
     //用户确认选定的值时触发
     change(value) {
       this.$emit("change", value);

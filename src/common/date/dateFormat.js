@@ -1,6 +1,5 @@
-//获取dom元素的宽度
+//格式化时间
 export function dateFormat(date, format = 'yyyy-MM-dd') {
-    console.log(date);
     let result = format
     if (result.indexOf('yyyy') != -1) {
         result = result.replace('yyyy', date.getFullYear())

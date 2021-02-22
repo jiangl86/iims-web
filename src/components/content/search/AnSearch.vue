@@ -2,32 +2,29 @@
   <div class="an-search">
     <div class="search-title">
       <slot name="search-title"> </slot>
-      <template>
-        <div class="btn-cxcz">
-          <an-button
-            name="查询"
-            icon="el-icon-search"
-            class="btn-default"
-          ></an-button>
-          <an-button
-            name="重置"
-            icon="fa fa-reply"
-            class="btn-resert"
-          ></an-button>
-        </div>
-      </template>
-      <template>
-        <div class="gjss">
-          <an-button name="高级搜索" class="btn-gjss"></an-button>
-          <an-button
-            iconAfter
-            :name="expandBtnName"
-            :icon="expandBtnIcon"
-            class="btn-zk"
-            @click.native="toggle"
-          ></an-button>
-        </div>
-      </template>
+      <div class="btn-cxcz">
+        <an-button
+          name="查询"
+          icon="el-icon-search"
+          class="btn-default"
+          @click.native="search"
+        ></an-button>
+        <an-button
+          name="重置"
+          icon="fa fa-reply"
+          class="btn-resert"
+        ></an-button>
+      </div>
+      <div class="gjss" v-if="hasMore">
+        <an-button name="高级搜索" class="btn-gjss"></an-button>
+        <an-button
+          iconAfter
+          :name="expandBtnName"
+          :icon="expandBtnIcon"
+          class="btn-zk"
+          @click.native="toggle"
+        ></an-button>
+      </div>
     </div>
     <div class="search-info" v-if="hasMore" v-show="searchcon">
       <slot name="search-info"></slot>
@@ -66,6 +63,9 @@ export default {
           ? "el-icon-arrow-up"
           : "el-icon-arrow-down";
       this.searchcon = !this.searchcon;
+    },
+    search() {
+      this.$emit("search");
     },
   },
 };

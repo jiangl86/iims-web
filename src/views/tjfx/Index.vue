@@ -1,7 +1,7 @@
 <template>
   <div class="tjfx-index">
     <div class="left">
-      <ul>
+      <ul class="statistic-list">
         <li
           v-for="item in statistics"
           :key="item.code"
@@ -46,7 +46,17 @@ export default {
   overflow-y: auto;
   border-right: 1px solid #ccc;
 }
+.statistic-list {
+  width: calc(100% - 10px);
+  line-height: 40px;
+  padding-left: 10px;
+}
+.statistic-list li {
+  width: 100%;
+  text-align: left;
+}
 .content {
   flex: 1;
+  overflow-y: auto;
 }
 </style>

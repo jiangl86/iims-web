@@ -7,7 +7,9 @@
       :start-placeholder="startPlaceholder"
       :end-placeholder="endPlaceholder"
       :format="format"
+      :valueFormat="valueFormat"
       :clearable="clearable"
+      :initialValue="initialValue"
       @change="change"
       @blur="blur"
       @focus="focus"
@@ -22,6 +24,9 @@ export default {
     name: {
       type: String,
       required: true,
+    },
+    initialValue: {
+      type: Array,
     },
     readonly: {
       //完全只读
@@ -72,6 +77,10 @@ export default {
       //显示在输入框中的格式
       type: String,
     },
+    valueFormat: {
+      //value格式
+      type: String,
+    },
     align: {
       //对齐方式
       type: String,
@@ -97,13 +106,15 @@ export default {
     },
     //当 input 失去焦点时触发
     blur(value) {
-      this.value = value;
       this.$emit("blur", value);
     },
     //当 input 获得焦点时触发
-    focus(e) {
-      this.value = value;
+    focus(value) {
       this.$emit("focus", value);
+    },
+
+    getValue() {
+      return this.value;
     },
   },
 };

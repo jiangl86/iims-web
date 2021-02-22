@@ -11,6 +11,7 @@ const tjfxRoutes = [
         path: 'tjfx',
         name: 'TjfxIndex',
         component: TjfxIndex,
+        redirect: { name: 'InterfaceStatistic' },
         children: [{
             path: 'jktj',
             name: 'InterfaceStatistic',
